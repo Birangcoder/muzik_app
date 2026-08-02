@@ -22,7 +22,9 @@ class MainScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.colors.background,
-      body: Padding(padding: AppSpacing.screenMargin, child: child),
+      body: SafeArea(
+        child: Padding(padding: AppSpacing.screenMargin, child: child),
+      ),
       bottomNavigationBar: NavigationBar(
         indicatorColor: Colors.transparent,
         selectedIndex: index,
