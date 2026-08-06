@@ -21,32 +21,44 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _tryRestoreSession();
   }
 
+  /// Rehydrates from secure storage — no network call, since the user
+  /// object is cached locally alongside the token (no refresh flow
+  /// or "current user" endpoint to fall back on if the token expired).
   Future<void> _tryRestoreSession() async {
     state = const AuthLoading();
-    final tokens = await _repo.loadPersistedTokens();
+    final persisted = await _repo.loadPersistedSession();
 
-    if (tokens == null) {
+    if (persisted == null || persisted.tokens.isExpired) {
       state = const AuthUnauthenticated();
       return;
     }
 
+    state = AuthAuthenticated(session: persisted.tokens, user: persisted.user);
+  }
+
+  Future<void> login({required String email, required String password}) async {
+    state = const AuthLoading();
     try {
-      final validTokens = tokens.isExpired
-          ? await _repo.refreshToken(tokens.refreshToken)
-          : tokens;
-      final user = await _repo.fetchCurrentUser(validTokens.accessToken);
-      state = AuthAuthenticated(tokens: validTokens, user: user);
-    } catch (_) {
-      state = const AuthUnauthenticated();
+      final result = await _repo.login(email: email, password: password);
+      state = AuthAuthenticated(session: result.tokens, user: result.user);
+    } catch (e) {
+      state = AuthError(e.toString());
     }
   }
 
-  Future<void> login() async {
+  /// Registers the account, then immediately logs in — register.php
+  /// doesn't return a token, so a separate login call is required to
+  /// end up authenticated.
+  Future<void> register({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
     state = const AuthLoading();
     try {
-      final tokens = await _repo.login();
-      final user = await _repo.fetchCurrentUser(tokens.accessToken);
-      state = AuthAuthenticated(tokens: tokens, user: user);
+      await _repo.register(name: name, email: email, password: password);
+      final result = await _repo.login(email: email, password: password);
+      state = AuthAuthenticated(session: result.tokens, user: result.user);
     } catch (e) {
       state = AuthError(e.toString());
     }

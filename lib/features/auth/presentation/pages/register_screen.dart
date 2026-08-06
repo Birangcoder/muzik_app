@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:muzik/core/constants/appRouteName.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../data/model/auth_state.dart';
 import '../provider/authProvider.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends ConsumerStatefulWidget {
+  const SignupScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _SignupScreenState extends ConsumerState<SignupScreen> {
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -28,7 +28,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void _submit() {
     ref
         .read(authProvider.notifier)
-        .login(
+        .register(
+          name: _nameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
@@ -56,7 +57,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
               /// Title
               Text(
-                'Welcome back',
+                'Create your account',
                 style: Theme.of(context).textTheme.displayLarge,
               ),
 
@@ -64,12 +65,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
               /// Description
               Text(
-                'Sign in to sync your favorites, playlists, and listening '
-                'history everywhere.',
+                'Join to save favorites, build playlists, and pick up '
+                'where you left off.',
                 style: Theme.of(context).textTheme.labelMedium,
               ),
 
               const SizedBox(height: 32),
+
+              /// Name field
+              Text('Full name', style: Theme.of(context).textTheme.labelSmall),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _nameController,
+                textCapitalization: TextCapitalization.words,
+                decoration: InputDecoration(
+                  hintText: 'Your name',
+                  filled: true,
+                  fillColor: context.colors.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
 
               /// Email field
               Text('Email', style: Theme.of(context).textTheme.labelSmall),
@@ -96,34 +120,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 16),
 
               /// Password field
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Password',
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                  GestureDetector(
-                    // TODO: wire up to a real forgot-password flow when
-                    // that endpoint exists on the backend.
-                    onTap: () {},
-                    child: Text(
-                      'Forgot?',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: const Color(0xff1CB5E0),
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              Text('Password', style: Theme.of(context).textTheme.labelSmall),
               const SizedBox(height: 8),
               TextField(
                 controller: _passwordController,
                 obscureText: true,
                 onSubmitted: (_) => isLoading ? null : _submit(),
                 decoration: InputDecoration(
-                  hintText: '••••••••',
+                  hintText: 'At least 8 characters',
                   filled: true,
                   fillColor: context.colors.surface,
                   border: OutlineInputBorder(
@@ -144,7 +148,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
               const SizedBox(height: 28),
 
-              /// Sign in button
+              /// Create account button
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -174,7 +178,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           )
                         : Text(
-                            'Sign in',
+                            'Create account',
                             style: Theme.of(context).textTheme.labelMedium
                                 ?.copyWith(color: Colors.white),
                           ),
@@ -182,43 +186,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
 
-              /// Divider
-              Row(
-                children: [
-                  Expanded(child: Divider(color: context.colors.stroke)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      'or',
-                      style: Theme.of(context).textTheme.labelSmall,
-                    ),
-                  ),
-                  Expanded(child: Divider(color: context.colors.stroke)),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              /// Create account button
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: OutlinedButton(
-                  onPressed: isLoading
+              /// Already have an account
+              Center(
+                child: GestureDetector(
+                  onTap: isLoading
                       ? null
-                      : () => context.goNamed(RouteName.register),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: context.colors.surface,
-                    side: BorderSide(color: context.colors.stroke),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      // Go back to the login screen rather than pushing a
+                      // new one, so the back stack doesn't grow each time
+                      // someone bounces between sign in / sign up.
+                      : () => Navigator.of(context).pop(),
+                  child: RichText(
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.labelSmall,
+                      children: [
+                        const TextSpan(text: 'Already have an account? '),
+                        TextSpan(
+                          text: 'Sign in',
+                          style: const TextStyle(
+                            color: Color(0xff1CB5E0),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  child: Text(
-                    'Create an account',
-                    style: Theme.of(context).textTheme.labelMedium,
                   ),
                 ),
               ),

@@ -14,10 +14,11 @@ class AuthLoading extends AuthState {
 }
 
 class AuthAuthenticated extends AuthState {
-  final LoginResponse tokens;
+  // renamed from `tokens` — there's only ever one token now, not a pair
+  final LoginResponse session;
   final UserModel user;
 
-  const AuthAuthenticated({required this.tokens, required this.user});
+  const AuthAuthenticated({required this.session, required this.user});
 }
 
 class AuthUnauthenticated extends AuthState {
