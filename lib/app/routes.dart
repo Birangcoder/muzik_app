@@ -5,6 +5,7 @@ import '../core/constants/appRouteName.dart';
 import '../core/router/go_router_refresh_notifier.dart';
 import '../features/auth/data/model/auth_state.dart';
 import '../features/auth/presentation/pages/login_screen.dart';
+import '../features/auth/presentation/pages/register_screen.dart';
 import '../features/auth/presentation/provider/authProvider.dart';
 import '../features/home/presentation/pages/home_screen.dart';
 import '../features/library/presentation/pages/library_screen.dart';
@@ -22,23 +23,33 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final authState = ref.read(authProvider);
       final path = state.matchedLocation;
-      final isLoginPage = path == '/login';
+      final isAuthPage = path == '/login' || path == '/register';
       final isSplashPage = path == '/splash';
 
       return switch (authState) {
-        // Still figuring out if a session exists -> hold on splash, don't redirect yet
         AuthInitial() || AuthLoading() => isSplashPage ? null : '/splash',
 
-        // Confirmed logged in -> bounce away from splash/login into the app
-        AuthAuthenticated() => (isSplashPage || isLoginPage) ? '/' : null,
+        AuthAuthenticated() => (isSplashPage || isAuthPage) ? '/' : null,
 
-        // Confirmed logged out / errored -> force to login unless already there
-        AuthUnauthenticated() || AuthError() => isLoginPage ? null : '/login',
+        AuthUnauthenticated() || AuthError() => isAuthPage ? null : '/login',
       };
     },
     routes: [
-      GoRoute(path: '/login', name: RouteName.login, builder: (_, _) => LoginScreen()),
-      GoRoute(path: '/splash', name: RouteName.splash, builder: (_, _) => SplashScreen()),
+      GoRoute(
+        path: '/login',
+        name: RouteName.login,
+        builder: (_, _) => LoginScreen(),
+      ),
+      GoRoute(
+        path: '/register',
+        name: RouteName.register,
+        builder: (_, _) => SignupScreen(),
+      ),
+      GoRoute(
+        path: '/splash',
+        name: RouteName.splash,
+        builder: (_, _) => SplashScreen(),
+      ),
       ShellRoute(
         builder: (context, state, child) {
           int index = 0;

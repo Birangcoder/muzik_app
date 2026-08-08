@@ -1,16 +1,19 @@
 import 'dart:convert';
 
-/// Matches login.php / register.php's auth payload.
+/// Wraps the JWT returned inside `data.token` from POST /auth/login.
 ///
-/// Changes from the original:
-/// - No `refreshToken`, `tokenType`, or `scope` — our API is a plain
-///   bearer JWT, not OAuth2. There's no refresh flow: when the token
-///   expires (7 days), the user just logs in again.
-/// - The server doesn't send `expires_in` — the JWT already carries its
-///   own `exp` claim, so we decode that directly instead of duplicating
-///   the expiry logic client-side. (If you'd rather keep the original
-///   shape, it's a one-line addition to login.php: return
-///   `'expires_in' => 60 * 60 * 24 * 7` alongside `token`.)
+/// The README confirms JWT_EXPIRE = 7 days server-side, but doesn't
+/// document a separate `expires_in` field in the response, so — same
+/// approach as before — we decode `exp` straight out of the token's own
+/// payload rather than guessing at a response field that may not exist.
+///
+/// NOTE: this assumes `fromJson` receives the *unwrapped* `data` object
+/// (i.e. `data: {token: "...", user: {...}}`), not the outer
+/// {success, data} envelope — the repository is responsible for
+/// unwrapping that first via `unwrapData()`.
+/// If your login response nests the token differently (e.g.
+/// `access_token` instead of `token`), update the single line marked
+/// below — everything else stays the same.
 class LoginResponse {
   final String accessToken;
   final DateTime expiresAt;
@@ -20,7 +23,7 @@ class LoginResponse {
   bool get isExpired => DateTime.now().isAfter(expiresAt);
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
-    final token = json['token'] as String;
+    final token = json['token'] as String; // <- adjust key here if needed
     return LoginResponse(accessToken: token, expiresAt: _expiryFromJwt(token));
   }
 

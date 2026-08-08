@@ -21,9 +21,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _tryRestoreSession();
   }
 
-  /// Rehydrates from secure storage — no network call, since the user
-  /// object is cached locally alongside the token (no refresh flow
-  /// or "current user" endpoint to fall back on if the token expired).
+  /// Rehydrates from secure storage — no network call, since there's no
+  /// silent-refresh flow. If the cached token has already expired, the
+  /// user has to log in again.
   Future<void> _tryRestoreSession() async {
     state = const AuthLoading();
     final persisted = await _repo.loadPersistedSession();
@@ -48,15 +48,22 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// Registers the account, then immediately logs in — register.php
   /// doesn't return a token, so a separate login call is required to
-  /// end up authenticated.
+  /// end up authenticated. Now also requires a confirmation password,
+  /// since the API validates password_confirmation server-side.
   Future<void> register({
     required String name,
     required String email,
     required String password,
+    required String passwordConfirmation,
   }) async {
     state = const AuthLoading();
     try {
-      await _repo.register(name: name, email: email, password: password);
+      await _repo.register(
+        name: name,
+        email: email,
+        password: password,
+        passwordConfirmation: passwordConfirmation,
+      );
       final result = await _repo.login(email: email, password: password);
       state = AuthAuthenticated(session: result.tokens, user: result.user);
     } catch (e) {
@@ -65,7 +72,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
-    await _repo.logout();
+    final current = state;
+    if (current is AuthAuthenticated) {
+      await _repo.logout(current.session.accessToken);
+    }
     state = const AuthUnauthenticated();
   }
 }

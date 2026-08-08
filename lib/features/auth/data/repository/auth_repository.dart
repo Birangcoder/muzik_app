@@ -1,57 +1,60 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import '../../../../core/constants/api_config.dart';
+import '../../../../core/constants/api_exception.dart';
 import '../model/user_model.dart';
 import '../model/login_response.dart';
 import '../repository/secure_storage_service.dart';
 
-/// Talks to the music-api PHP backend (register.php / login.php only —
-/// no separate "current user" endpoint exists, so we don't call one).
+/// Talks to MusicAPI V2's auth + profile routes.
 ///
-/// Changes from the original:
-/// - No more flutter_web_auth_2 / browser redirect flow — our API is a
-///   plain email+password POST, not OAuth2 authorization-code.
-/// - No client_id/client_secret, no PKCE state param, no redirect URI —
-///   none of that applies to a first-party API you own.
-/// - refreshToken() is gone. The JWT has no refresh flow: when
-///   isExpired is true, the only option is to call login() again.
-/// - fetchCurrentUser() is gone too — login.php's response already
-///   includes the full user object, so login() returns both the token
-///   and the user in one call. That user is cached locally (see
-///   SecureStorageService) so it can be restored on app relaunch
-///   without hitting the network again.
+/// Changes from the previous version (the flat music-api PHP project):
+/// - Routes are pretty URLs under a base path (ApiConfig.baseUrl +
+///   '/auth/...'), not standalone .php files.
+/// - Every response is wrapped in {success, data} / {success:false,
+///   message, errors} — unwrapData() handles that in one place instead
+///   of each method re-parsing it.
+/// - register() now requires password_confirmation — the server
+///   validates it and returns a 422-style {success:false, errors:{...}}
+///   if it's missing or doesn't match, which surfaces as an
+///   ApiException with fieldErrors populated.
+/// - logout() is now a real server call (POST /auth/logout, Bearer
+///   token required) instead of just a local storage wipe. We still
+///   clear local storage even if the network call fails, so the user
+///   is never stuck "logged in" locally after tapping logout.
+/// - fetchCurrentUser()/me.php is replaced by GET /profile, which
+///   returns the fuller UserModel shape (country, birth_date, gender,
+///   bio) documented in section 17.
 class AuthRepository {
   final SecureStorageService _storage;
 
   AuthRepository(this._storage);
 
-  /// POST /register.php — create a new account.
-  /// Note: registering does NOT log the user in — call login() after,
-  /// same as the API's behavior (register.php returns no token).
+  /// POST /auth/register.
+  /// Does NOT log the user in — the API returns the created user only,
+  /// no token. Call login() right after, same as before.
   Future<UserModel> register({
     required String name,
     required String email,
     required String password,
+    required String passwordConfirmation,
   }) async {
     final response = await http.post(
       Uri.parse(ApiConfig.register),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'name': name, 'email': email, 'password': password}),
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'password': password,
+        'password_confirmation': passwordConfirmation,
+      }),
     );
-    debugPrint("URL: ${Uri.parse(ApiConfig.register)}");
-    debugPrint("Status: ${response.statusCode}");
-    debugPrint("Body: ${response.body}");
-    final body = jsonDecode(response.body) as Map<String, dynamic>;
 
-    if (response.statusCode != 201) {
-      throw Exception(body['error'] ?? 'Registration failed');
-    }
-    return UserModel.fromJson(body['user'] as Map<String, dynamic>);
+    final data = unwrapData(response) as Map<String, dynamic>;
+    return UserModel.fromJson(data);
   }
 
-  /// POST /login.php — returns both the session token and the user
-  /// profile in a single response. Both get persisted locally.
+  /// POST /auth/login — expects `data: {token, user}`.
   Future<({LoginResponse tokens, UserModel user})> login({
     required String email,
     required String password,
@@ -62,14 +65,10 @@ class AuthRepository {
       body: jsonEncode({'email': email, 'password': password}),
     );
 
-    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    final data = unwrapData(response) as Map<String, dynamic>;
 
-    if (response.statusCode != 200) {
-      throw Exception(body['error'] ?? 'Login failed');
-    }
-
-    final tokens = LoginResponse.fromJson(body);
-    final user = UserModel.fromJson(body['user'] as Map<String, dynamic>);
+    final tokens = LoginResponse.fromJson(data);
+    final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
 
     await _storage.saveTokens(tokens);
     await _storage.saveUser(user);
@@ -77,9 +76,40 @@ class AuthRepository {
     return (tokens: tokens, user: user);
   }
 
-  /// Rehydrate a previous session from local storage on app launch.
-  /// Returns null if there's nothing saved, or if the saved token has
-  /// already expired (caller should route to sign-in either way).
+  /// GET /profile — the fullest user shape, used to refresh cached data
+  /// (e.g. after editing the profile, or to repopulate fields that
+  /// login/register didn't return).
+  Future<UserModel> fetchProfile(String accessToken) async {
+    final response = await http.get(
+      Uri.parse(ApiConfig.profile),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+
+    final data = unwrapData(response) as Map<String, dynamic>;
+    final user = UserModel.fromJson(data);
+    await _storage.saveUser(user);
+    return user;
+  }
+
+  /// PUT /profile
+  Future<UserModel> updateProfile(String accessToken, UserModel user) async {
+    final response = await http.put(
+      Uri.parse(ApiConfig.profile),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(user.toUpdatePayload()),
+    );
+
+    final data = unwrapData(response) as Map<String, dynamic>;
+    final updated = UserModel.fromJson(data);
+    await _storage.saveUser(updated);
+    return updated;
+  }
+
+  /// Rehydrate a previous session from local storage on app launch —
+  /// no network call, same as before.
   Future<({LoginResponse tokens, UserModel user})?>
   loadPersistedSession() async {
     final tokens = await _storage.readTokens();
@@ -88,5 +118,18 @@ class AuthRepository {
     return (tokens: tokens, user: user);
   }
 
-  Future<void> logout() => _storage.clearTokens();
+  /// POST /auth/logout, then clear local storage regardless of whether
+  /// the network call succeeded (e.g. token already expired server-side
+  /// shouldn't block the user from logging out locally).
+  Future<void> logout(String accessToken) async {
+    try {
+      await http.post(
+        Uri.parse(ApiConfig.logout),
+        headers: {'Authorization': 'Bearer $accessToken'},
+      );
+    } catch (_) {
+      // ignore — we're clearing local state either way
+    }
+    await _storage.clearTokens();
+  }
 }

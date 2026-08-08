@@ -42,13 +42,13 @@ class AppColors extends ThemeExtension<AppColors> {
 
   // Dark theme values, straight from the table in design-system.md
   static const dark = AppColors(
-    background: Color(0xFF0A0A10),
-    surface: Color(0xFF141420),
-    surface2: Color(0xFF1B1B29),
-    stroke: Color(0xFF242435),
+    background: Color(0xFF100F17),
+    surface: Color(0xFF1C1B29),
+    surface2: Color(0xFF262533),
+    stroke: Color(0xFF38374C),
     text: Color(0xFFF5F4FA),
-    text2: Color(0xFF9997A8),
-    text3: Color(0xFF5E5C70),
+    text2: Color(0xFFB3B1C4),
+    text3: Color(0xFF8987A0),
     purple: Color(0xFF7C3AED),
     blue: Color(0xFF3B82F6),
     cyan: Color(0xFF06B6D4),

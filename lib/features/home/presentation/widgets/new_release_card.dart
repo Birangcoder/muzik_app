@@ -1,0 +1,63 @@
+import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/utils/responsive.dart';
+
+class NewReleaseCard extends StatelessWidget {
+  final String title;
+  final String artist;
+  final Gradient gradient;
+  final VoidCallback? onTap;
+
+  const NewReleaseCard({
+    super.key,
+    required this.title,
+    required this.artist,
+    required this.gradient,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colors = context.colors;
+    final size = Responsive.mediaCardSize(context);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(AppRadius.card),
+      onTap: onTap,
+      child: SizedBox(
+        width: size,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppRadius.card),
+                gradient: gradient,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyLarge?.copyWith(
+                color: colors.text,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            Text(
+              artist,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.labelMedium?.copyWith(color: colors.text2),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
