@@ -26,7 +26,8 @@ class MainScreen extends StatelessWidget {
         child: Padding(padding: AppSpacing.screenMargin, child: child),
       ),
       bottomNavigationBar: NavigationBar(
-        indicatorColor: Colors.transparent,
+        indicatorColor: context.colors.surface2,
+        surfaceTintColor: Colors.transparent,
         selectedIndex: index,
         elevation: 2,
         onDestinationSelected: (index) {

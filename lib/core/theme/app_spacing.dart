@@ -13,7 +13,7 @@ class AppSpacing {
   static const huge = 64.0;
 
   // Ready-made EdgeInsets so you don't retype these constantly
-  static const screenMargin = EdgeInsets.symmetric(horizontal: 20, vertical: 20);
+  static const screenMargin = EdgeInsets.symmetric(horizontal: 10, vertical: 10);
   static const cardPadding = EdgeInsets.all(16);
 
   // Touch target sizes

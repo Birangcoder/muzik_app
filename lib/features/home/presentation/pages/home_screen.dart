@@ -83,7 +83,7 @@ class HomeScreen extends ConsumerWidget {
               AppSearchBar(padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 16)),
 
               HomeSection<TrackModel>(
-                title: "trending on jamendo",
+                title: "trending",
                 height: Responsive.trendingRailHeight(context),
                 items: trendingTracks,
                 itemBuilder: (context, track, i) => TrendingCard(

@@ -38,7 +38,7 @@ dependencies:
   riverpod: ^3.4.2
   flutter_riverpod: ^3.4.2
   google_fonts: ^8.2.1
-  flutter_web_auth_2: ^5.0.3
+  flutter_web_auth_2: ^6.0.0-alpha.3
   jwt_decoder: ^2.0.1
   http: ^1.6.0
   flutter_secure_storage: ^10.3.1
