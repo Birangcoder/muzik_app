@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/appRouteName.dart';
 import '../../../../core/theme/app_gradients.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../shared/models/album_model.dart';
+import '../../../../shared/models/artists_model.dart';
+import '../../../../shared/models/songs_model.dart';
 import '../../../auth/presentation/provider/current_user_provider.dart';
-import '../../data/model/album_model.dart';
-import '../../data/model/artist_model.dart';
 import '../../data/mock_home_data.dart';
-import '../../data/model/track_model.dart';
+import '../providers/home_provider.dart';
 import '../widgets/genre_tile.dart';
 import '../widgets/home_section.dart';
-import '../widgets/new_release_card.dart';
-import '../widgets/popular_artist_card.dart';
+import '../widgets/square_card.dart';
+import '../widgets/round_card.dart';
 import '../widgets/searchBar.dart';
 import '../widgets/trending_card.dart';
 
@@ -27,6 +30,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
+    final homeAsync = ref.watch(homeProvider);
     final gradients = AppGradients.fallbackTiles;
     final hPad = Responsive.horizontalPadding(context);
     final textTheme = Theme.of(context).textTheme;
@@ -70,10 +74,13 @@ class HomeScreen extends ConsumerWidget {
                         shape: BoxShape.circle,
                         gradient: gradients.first,
                       ),
-                      child: const Icon(
-                        Icons.person,
+                      child: IconButton(
+                        onPressed: () {
+                          context.goNamed(RouteName.profile);
+                        },
+                        icon: const Icon(Icons.person),
                         color: Colors.white,
-                        size: 20,
+                        iconSize: 20,
                       ),
                     ),
                   ],
@@ -82,38 +89,108 @@ class HomeScreen extends ConsumerWidget {
 
               AppSearchBar(padding: EdgeInsets.fromLTRB(hPad, 16, hPad, 16)),
 
-              HomeSection<TrackModel>(
-                title: "trending",
-                height: Responsive.trendingRailHeight(context),
-                items: trendingTracks,
-                itemBuilder: (context, track, i) => TrendingCard(
-                  rank: i + 1,
-                  title: track.name,
-                  artist: track.artistName,
-                  gradient: gradients[i % gradients.length],
-                ),
-              ),
+              homeAsync.when(
+                loading: () => const CircularProgressIndicator(),
 
-              HomeSection<AlbumModel>(
-                title: "new releases",
-                height: Responsive.mediaRailHeight(context),
-                items: newReleases,
-                itemBuilder: (context, album, i) => NewReleaseCard(
-                  title: album.name,
-                  artist: album.artistName,
-                  gradient: gradients[i % gradients.length],
-                ),
-              ),
+                error: (error, stack) {
+                  return Text(error.toString());
+                },
 
-              HomeSection<ArtistModel>(
-                title: "popular artists",
-                height: Responsive.mediaRailHeight(context),
-                items: artists,
-                itemBuilder: (context, artist, i) => PopularArtistCard(
-                  name: artist.name,
-                  trackCount: artist.trackCount,
-                  gradient: gradients[i % gradients.length],
-                ),
+                data: (home) {
+                  return Column(
+                    children: [
+                      HomeSection<SongModel>(
+                        title: "trending",
+                        height: Responsive.trendingRailHeight(context),
+                        items: home.trending,
+                        itemBuilder: (context, track, i) => TrendingCard(
+                          rank: i + 1,
+                          title: track.title,
+                          artist: track.artists
+                              .map((artist) => artist.name)
+                              .join(', '),
+                          gradient: gradients[i % gradients.length],
+                        ),
+                      ),
+
+                      HomeSection<SongModel>(
+                        title: "new releases",
+                        height: Responsive.mediaRailHeight(context),
+                        items: home.newReleases,
+                        itemBuilder: (context, song, i) => SquareCard(
+                          title: song.title,
+                          artist: song.artists
+                              .map((artist) => artist.name)
+                              .join(', '),
+                          coverImg: song.media.coverUrl,
+                        ),
+                      ),
+
+                      HomeSection<ArtistsModel>(
+                        title: "popular artists",
+                        height: Responsive.mediaRailHeight(context),
+                        items: home.artists,
+                        itemBuilder: (context, artist, i) => RoundCard(
+                          name: artist.name,
+                          coverImg: artist.imageUrl!,
+                        ),
+                      ),
+
+                      HomeSection<SongModel>(
+                        title: "popular songs",
+                        height: Responsive.mediaRailHeight(context),
+                        items: home.popular,
+                        itemBuilder: (context, song, i) => SquareCard(
+                          title: song.title,
+                          artist: song.artists
+                              .map((artist) => artist.name)
+                              .join(', '),
+                          coverImg: song.media.coverUrl,
+                        ),
+                      ),
+
+                      //1281 ms
+                      HomeSection<AlbumModel>(
+                        title: "popular album",
+                        height: Responsive.mediaRailHeight(context),
+                        items: home.albums,
+                        itemBuilder: (context, album, i) => SquareCard(
+                          title: album.title,
+                          artist:
+                              album.artist
+                                  ?.map((artist) => artist.name)
+                                  .join(', ') ??
+                              '',
+                          coverImg: album.coverUrl,
+                        ),
+                      ),
+
+                      HomeSection<SongModel>(
+                        title: "recommended for you",
+                        height: Responsive.mediaRailHeight(context),
+                        items: home.recommended,
+                        itemBuilder: (context, song, i) {
+                          if (home.recommended.isNotEmpty) {
+                            return SquareCard(
+                              title: song.title,
+                              artist: song.artists
+                                  .map((artist) => artist.name)
+                                  .join(', '),
+                              coverImg: song.media.coverUrl,
+                            );
+                          } else {
+                            return Column(
+                              children: [
+                                Text('Start listening to discover'),
+                                Text('music picked for you.'),
+                              ],
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  );
+                },
               ),
 
               Padding(

@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const baseUrl = "https://decb-2409-40c1-551d-a6b7-f473-198e-bf60-de9d.ngrok-free.app/MusicAPI-v2/public";
+  static const baseUrl = "https://f405-2409-40c1-5464-6b85-a4e6-344e-3bcf-7b52.ngrok-free.app/MusicAPI-v2/public";
 
   static const login = "$baseUrl/auth/login";
 
@@ -9,7 +9,9 @@ class ApiConfig {
 
   static const profile = '$baseUrl/profile';
 
-  // static const products = "$baseUrl/products";
+  static const home = '$baseUrl/home';
+
+  static const songs = "$baseUrl/songs";
   //
   // static const categories = "$baseUrl/products/categories";
   //

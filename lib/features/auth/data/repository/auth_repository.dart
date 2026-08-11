@@ -6,25 +6,6 @@ import '../model/user_model.dart';
 import '../model/login_response.dart';
 import '../repository/secure_storage_service.dart';
 
-/// Talks to MusicAPI V2's auth + profile routes.
-///
-/// Changes from the previous version (the flat music-api PHP project):
-/// - Routes are pretty URLs under a base path (ApiConfig.baseUrl +
-///   '/auth/...'), not standalone .php files.
-/// - Every response is wrapped in {success, data} / {success:false,
-///   message, errors} — unwrapData() handles that in one place instead
-///   of each method re-parsing it.
-/// - register() now requires password_confirmation — the server
-///   validates it and returns a 422-style {success:false, errors:{...}}
-///   if it's missing or doesn't match, which surfaces as an
-///   ApiException with fieldErrors populated.
-/// - logout() is now a real server call (POST /auth/logout, Bearer
-///   token required) instead of just a local storage wipe. We still
-///   clear local storage even if the network call fails, so the user
-///   is never stuck "logged in" locally after tapping logout.
-/// - fetchCurrentUser()/me.php is replaced by GET /profile, which
-///   returns the fuller UserModel shape (country, birth_date, gender,
-///   bio) documented in section 17.
 class AuthRepository {
   final SecureStorageService _storage;
 
