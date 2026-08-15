@@ -1,5 +1,5 @@
 import '../../../../shared/models/album_model.dart';
-import '../../../../shared/models/songs_model.dart';
+import '../../../song/data/models/songs_model.dart';
 import '../../../../shared/models/artists_model.dart';
 
 class HomeModel {
@@ -7,6 +7,7 @@ class HomeModel {
   final List<SongModel> popular;
   final List<SongModel> recommended;
   final List<SongModel> newReleases;
+  final List<SongModel> continueListening;
   final List<ArtistsModel> artists;
   final List<AlbumModel> albums;
 
@@ -15,6 +16,7 @@ class HomeModel {
     required this.popular,
     required this.recommended,
     required this.newReleases,
+    required this.continueListening,
     required this.artists,
     required this.albums,
   });
@@ -43,6 +45,10 @@ class HomeModel {
 
       albums: (json['top_albums'] as List)
           .map((e) => AlbumModel.fromJson(e))
+          .toList(),
+
+      continueListening: (json['continue_listening'] as List)
+          .map((e) => SongModel.fromJson(e))
           .toList(),
     );
   }

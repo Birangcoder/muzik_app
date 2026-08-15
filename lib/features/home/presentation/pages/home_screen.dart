@@ -7,12 +7,11 @@ import '../../../../core/theme/app_gradients.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../shared/models/album_model.dart';
 import '../../../../shared/models/artists_model.dart';
-import '../../../../shared/models/songs_model.dart';
+import '../../../song/data/models/songs_model.dart';
 import '../../../auth/presentation/provider/current_user_provider.dart';
-import '../../data/mock_home_data.dart';
 import '../providers/home_provider.dart';
-import '../widgets/genre_tile.dart';
 import '../widgets/home_section.dart';
+import '../widgets/song_list_section.dart';
 import '../widgets/square_card.dart';
 import '../widgets/round_card.dart';
 import '../widgets/searchBar.dart';
@@ -103,6 +102,7 @@ class HomeScreen extends ConsumerWidget {
                         title: "trending",
                         height: Responsive.trendingRailHeight(context),
                         items: home.trending,
+                        onSeeAll: () {},
                         itemBuilder: (context, track, i) => TrendingCard(
                           rank: i + 1,
                           title: track.title,
@@ -110,6 +110,10 @@ class HomeScreen extends ConsumerWidget {
                               .map((artist) => artist.name)
                               .join(', '),
                           gradient: gradients[i % gradients.length],
+                          onTap: () => context.goNamed(
+                            RouteName.song,
+                            pathParameters: {"id": track.id.toString()},
+                          ),
                         ),
                       ),
 
@@ -117,12 +121,17 @@ class HomeScreen extends ConsumerWidget {
                         title: "new releases",
                         height: Responsive.mediaRailHeight(context),
                         items: home.newReleases,
+                        onSeeAll: () {},
                         itemBuilder: (context, song, i) => SquareCard(
                           title: song.title,
                           artist: song.artists
                               .map((artist) => artist.name)
                               .join(', '),
                           coverImg: song.media.coverUrl,
+                          onTap: () => context.goNamed(
+                            RouteName.song,
+                            pathParameters: {"id": song.id.toString()},
+                          ),
                         ),
                       ),
 
@@ -130,30 +139,27 @@ class HomeScreen extends ConsumerWidget {
                         title: "popular artists",
                         height: Responsive.mediaRailHeight(context),
                         items: home.artists,
+                        onSeeAll: () {},
                         itemBuilder: (context, artist, i) => RoundCard(
                           name: artist.name,
                           coverImg: artist.imageUrl!,
                         ),
                       ),
 
-                      HomeSection<SongModel>(
-                        title: "popular songs",
-                        height: Responsive.mediaRailHeight(context),
-                        items: home.popular,
-                        itemBuilder: (context, song, i) => SquareCard(
-                          title: song.title,
-                          artist: song.artists
-                              .map((artist) => artist.name)
-                              .join(', '),
-                          coverImg: song.media.coverUrl,
-                        ),
+                      SongListSection(
+                        title: 'popular songs',
+                        songs: home.popular,
+                        onPlayAll: () {
+                          // play all trending songs
+                        },
+                        songsPerColumn: 4,
                       ),
 
-                      //1281 ms
                       HomeSection<AlbumModel>(
                         title: "popular album",
                         height: Responsive.mediaRailHeight(context),
                         items: home.albums,
+                        onSeeAll: () {},
                         itemBuilder: (context, album, i) => SquareCard(
                           title: album.title,
                           artist:
@@ -169,53 +175,56 @@ class HomeScreen extends ConsumerWidget {
                         title: "recommended for you",
                         height: Responsive.mediaRailHeight(context),
                         items: home.recommended,
+                        onSeeAll: () {},
+                        emptyWidget: const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Start listening to discover'),
+                            Text('music picked for you.'),
+                          ],
+                        ),
                         itemBuilder: (context, song, i) {
-                          if (home.recommended.isNotEmpty) {
-                            return SquareCard(
-                              title: song.title,
-                              artist: song.artists
-                                  .map((artist) => artist.name)
-                                  .join(', '),
-                              coverImg: song.media.coverUrl,
-                            );
-                          } else {
-                            return Column(
-                              children: [
-                                Text('Start listening to discover'),
-                                Text('music picked for you.'),
-                              ],
-                            );
-                          }
+                          return SquareCard(
+                            title: song.title,
+                            artist: song.artists
+                                .map((artist) => artist.name)
+                                .join(', '),
+                            coverImg: song.media.coverUrl,
+                            onTap: () => context.goNamed(
+                              RouteName.song,
+                              pathParameters: {"id": song.id.toString()},
+                            ),
+                          );
+                        },
+                      ),
+
+                      HomeSection<SongModel>(
+                        title: "continue listening",
+                        height: Responsive.mediaRailHeight(context),
+                        items: home.continueListening,
+                        onSeeAll: () {},
+                        emptyWidget: const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [Text('Start listening ')],
+                        ),
+                        itemBuilder: (context, song, i) {
+                          return SquareCard(
+                            title: song.title,
+                            artist: song.artists
+                                .map((artist) => artist.name)
+                                .join(', '),
+                            coverImg: song.media.coverUrl,
+                            onTap: () => context.goNamed(
+                              RouteName.song,
+                              pathParameters: {"id": song.id.toString()},
+                            ),
+                          );
                         },
                       ),
                     ],
                   );
                 },
               ),
-
-              Padding(
-                padding: EdgeInsets.fromLTRB(hPad, 32, hPad, 12),
-                child: Text("genres", style: textTheme.titleLarge),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: hPad),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: Responsive.gridColumns(context),
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 2.4,
-                  ),
-                  itemCount: genres.length,
-                  itemBuilder: (context, i) => GenreTile(
-                    label: genres[i],
-                    gradient: gradients[i % gradients.length],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
             ],
           ),
         ),

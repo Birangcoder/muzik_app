@@ -1,12 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../auth/data/repository/secure_storage_service.dart';
+import '../../../../providers/secure_storage_provider.dart';
 import '../../data/model/home_model.dart';
 import '../../data/repository/home_repository.dart';
-
-final secureStorageServiceProvider = Provider<SecureStorageService>((ref) {
-  return SecureStorageService();
-});
 
 final homeRepositoryProvider = Provider<HomeRepository>((ref) {
   return HomeRepository(

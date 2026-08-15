@@ -4,6 +4,7 @@ import 'package:muzik/core/constants/appRouteName.dart';
 import 'package:muzik/core/theme/app_spacing.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/floating_mini_player.dart';
 
 class MainScreen extends StatelessWidget {
   final Widget child;
@@ -23,7 +24,12 @@ class MainScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: context.colors.background,
       body: SafeArea(
-        child: Padding(padding: AppSpacing.screenMargin, child: child),
+        child: Stack(
+          children: [
+            Padding(padding: AppSpacing.screenMargin, child: child),
+            const FloatingMiniPlayer(),
+          ],
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         indicatorColor: context.colors.surface2,

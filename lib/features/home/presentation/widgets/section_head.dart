@@ -1,4 +1,3 @@
-// lib/shared/widgets/section_head.dart
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -15,7 +14,7 @@ class SectionHead extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final colors = context.colors;
+    // final colors = context.colors;
 
     return Padding(
       // 32px between sections, 12px header->content, per Spacing section
@@ -28,23 +27,22 @@ class SectionHead extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: textTheme.titleLarge),
+          Text(
+            title,
+            style: textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           if (onSeeAll != null)
-            InkWell(
-              onTap: onSeeAll,
-              borderRadius: BorderRadius.circular(AppRadius.chip),
-              child: Padding(
-                // keeps the tap target reasonable without visually
-                // growing the text
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xs,
-                  vertical: AppSpacing.xs,
-                ),
-                child: Text(
-                  "see all",
-                  style: textTheme.labelMedium?.copyWith(color: colors.blue),
-                ),
+            OutlinedButton.icon(
+              onPressed: onSeeAll,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
+              icon: const Icon(Icons.play_arrow_rounded, size: 16),
+              label: const Text('View All', style: TextStyle(fontSize: 12)),
             ),
         ],
       ),
