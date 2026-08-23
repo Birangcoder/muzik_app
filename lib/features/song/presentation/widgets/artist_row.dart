@@ -1,5 +1,3 @@
-// lib/features/song/presentation/widgets/artist_row.dart
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -10,10 +8,7 @@ import '../../../../shared/models/artists_model.dart';
 class ArtistRow extends StatelessWidget {
   final List<ArtistsModel> artists;
 
-  const ArtistRow({
-    super.key,
-    required this.artists,
-  });
+  const ArtistRow({super.key, required this.artists});
 
   @override
   Widget build(BuildContext context) {
@@ -43,60 +38,60 @@ class ArtistRow extends StatelessWidget {
                     width: 48,
                     height: 48,
                     child: ClipOval(
-                      child: artist.imageUrl != null &&
-                          artist.imageUrl!.isNotEmpty
+                      child:
+                          artist.imageUrl != null && artist.imageUrl!.isNotEmpty
                           ? CachedNetworkImage(
-                        imageUrl: CloudinaryImage.resize(
-                          artist.imageUrl!,
-                          width: 96,
-                        ),
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
+                              imageUrl: CloudinaryImage.resize(
+                                artist.imageUrl!,
+                                width: 96,
+                              ),
+                              width: 48,
+                              height: 48,
+                              fit: BoxFit.cover,
 
-                        // Decode only what is needed.
-                        memCacheWidth: 96,
-                        memCacheHeight: 96,
+                              // Decode only what is needed.
+                              memCacheWidth: 96,
+                              memCacheHeight: 96,
 
-                        placeholder: (context, url) {
-                          return ColoredBox(
-                            color: colors.surface2,
-                            child: Center(
-                              child: SizedBox(
-                                width: 14,
-                                height: 14,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 1.5,
+                              placeholder: (context, url) {
+                                return ColoredBox(
+                                  color: colors.surface2,
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 1.5,
+                                        color: colors.text3,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+
+                              errorWidget: (context, url, error) {
+                                return ColoredBox(
+                                  color: colors.surface2,
+                                  child: Center(
+                                    child: Icon(
+                                      Icons.person_rounded,
+                                      color: colors.text3,
+                                      size: 24,
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : ColoredBox(
+                              color: colors.surface2,
+                              child: Center(
+                                child: Icon(
+                                  Icons.person_rounded,
                                   color: colors.text3,
+                                  size: 24,
                                 ),
                               ),
                             ),
-                          );
-                        },
-
-                        errorWidget: (context, url, error) {
-                          return ColoredBox(
-                            color: colors.surface2,
-                            child: Center(
-                              child: Icon(
-                                Icons.person_rounded,
-                                color: colors.text3,
-                                size: 24,
-                              ),
-                            ),
-                          );
-                        },
-                      )
-                          : ColoredBox(
-                        color: colors.surface2,
-                        child: Center(
-                          child: Icon(
-                            Icons.person_rounded,
-                            color: colors.text3,
-                            size: 24,
-                          ),
-                        ),
-                      ),
                     ),
                   ),
 
@@ -129,9 +124,7 @@ class ArtistRow extends StatelessWidget {
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: textTheme.labelSmall?.copyWith(
-                    color: colors.text2,
-                  ),
+                  style: textTheme.labelSmall?.copyWith(color: colors.text2),
                 ),
               ),
             ],

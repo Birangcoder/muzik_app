@@ -1,4 +1,3 @@
-// lib/features/song/presentation/widgets/genre_chips.dart
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -6,6 +5,7 @@ import '../../../../shared/models/reference_models.dart';
 
 class GenreChips extends StatelessWidget {
   final List<GenresRef> genres;
+
   const GenreChips({super.key, required this.genres});
 
   @override
@@ -18,22 +18,20 @@ class GenreChips extends StatelessWidget {
       children: genres
           .map(
             (g) => Container(
-          padding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: colors.surface2,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: colors.stroke),
-          ),
-          child: Text(
-            g.title,
-            style: Theme.of(context)
-                .textTheme
-                .labelMedium
-                ?.copyWith(color: colors.text2),
-          ),
-        ),
-      )
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: colors.surface2,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: colors.stroke),
+              ),
+              child: Text(
+                g.title,
+                style: Theme.of(
+                  context,
+                ).textTheme.labelMedium?.copyWith(color: colors.text2),
+              ),
+            ),
+          )
           .toList(),
     );
   }

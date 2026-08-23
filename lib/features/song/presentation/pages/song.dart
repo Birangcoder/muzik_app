@@ -1,4 +1,3 @@
-// lib/features/song/presentation/pages/song_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -81,8 +80,10 @@ class _SongPageState extends ConsumerState<SongPage> {
           centerTitle: true,
           actions: [
             IconButton(
-              icon: Icon(Icons.picture_in_picture_alt_rounded,
-                  color: colors.text),
+              icon: Icon(
+                Icons.picture_in_picture_alt_rounded,
+                color: colors.text,
+              ),
               tooltip: 'Minimize',
               onPressed: _handleMinimize,
             ),

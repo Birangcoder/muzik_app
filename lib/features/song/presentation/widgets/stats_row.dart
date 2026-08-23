@@ -1,4 +1,3 @@
-// lib/features/song/presentation/widgets/stats_row.dart
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -6,7 +5,12 @@ import '../../../../core/theme/app_colors.dart';
 class StatsRow extends StatelessWidget {
   final int? playCount;
   final DateTime releaseDate;
-  const StatsRow({super.key, required this.playCount, required this.releaseDate});
+
+  const StatsRow({
+    super.key,
+    required this.playCount,
+    required this.releaseDate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +36,7 @@ class StatsRow extends StatelessWidget {
 class _StatChip extends StatelessWidget {
   final IconData icon;
   final String label;
+
   const _StatChip({required this.icon, required this.label});
 
   @override
@@ -44,10 +49,9 @@ class _StatChip extends StatelessWidget {
         const SizedBox(width: 5),
         Text(
           label,
-          style: Theme.of(context)
-              .textTheme
-              .labelSmall
-              ?.copyWith(color: colors.text3),
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: colors.text3),
         ),
       ],
     );
@@ -66,8 +70,18 @@ String _formatCount(int? n) {
 }
 
 const _months = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
 ];
 
 String _formatReleaseDate(DateTime date) =>

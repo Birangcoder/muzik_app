@@ -18,6 +18,7 @@ class SongPageLoading extends StatelessWidget {
 
 class SongPageError extends StatelessWidget {
   final String message;
+
   const SongPageError({super.key, required this.message});
 
   @override
@@ -35,19 +36,18 @@ class SongPageError extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 "Couldn't load this song",
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyLarge
-                    ?.copyWith(fontWeight: FontWeight.w600, color: colors.text),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colors.text,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelSmall
-                    ?.copyWith(color: colors.text3),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(color: colors.text3),
               ),
             ],
           ),

@@ -1,4 +1,3 @@
-// lib/features/song/presentation/widgets/now_playing_body.dart
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -13,6 +12,7 @@ import 'stats_row.dart';
 
 class NowPlayingBody extends StatelessWidget {
   final SongModel song;
+
   const NowPlayingBody({super.key, required this.song});
 
   @override
@@ -53,15 +53,15 @@ class NowPlayingBody extends StatelessWidget {
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelMedium
-                        ?.copyWith(color: colors.text2),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.labelMedium?.copyWith(color: colors.text2),
                   ),
                   const SizedBox(height: 28),
                   SeekBar(
-                    fallbackDuration:
-                    Duration(seconds: song.media.durationSeconds),
+                    fallbackDuration: Duration(
+                      seconds: song.media.durationSeconds,
+                    ),
                   ),
                   const SizedBox(height: 18),
                   ArtistRow(artists: song.artists),

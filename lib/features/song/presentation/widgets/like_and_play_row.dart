@@ -1,4 +1,3 @@
-// lib/features/song/presentation/widgets/like_and_play_row.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
@@ -8,6 +7,7 @@ import '../../../../providers/audio_player_provider.dart';
 
 class LikeAndPlayRow extends StatefulWidget {
   final int? likeCount;
+
   const LikeAndPlayRow({super.key, required this.likeCount});
 
   @override
@@ -49,10 +49,9 @@ class _LikeAndPlayRowState extends State<LikeAndPlayRow> {
               if (_count != null)
                 Text(
                   _formatCount(_count),
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelSmall
-                      ?.copyWith(color: colors.text3),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: colors.text3),
                 ),
             ],
           ),
@@ -74,7 +73,8 @@ class _PlayPauseButton extends ConsumerWidget {
     final processingState = playerState?.processingState;
     final playing = playerState?.playing ?? false;
 
-    final isBuffering = processingState == ProcessingState.loading ||
+    final isBuffering =
+        processingState == ProcessingState.loading ||
         processingState == ProcessingState.buffering;
     final size = MediaQuery.of(context).size.width > 600 ? 72.0 : 64.0;
 
@@ -84,31 +84,31 @@ class _PlayPauseButton extends ConsumerWidget {
       decoration: BoxDecoration(shape: BoxShape.circle, color: colors.purple),
       child: isBuffering
           ? Padding(
-        padding: const EdgeInsets.all(18),
-        child: CircularProgressIndicator(
-          strokeWidth: 2.4,
-          color: colors.text,
-        ),
-      )
+              padding: const EdgeInsets.all(18),
+              child: CircularProgressIndicator(
+                strokeWidth: 2.4,
+                color: colors.text,
+              ),
+            )
           : IconButton(
-        icon: Icon(
-          processingState == ProcessingState.completed
-              ? Icons.replay_rounded
-              : (playing
-              ? Icons.pause_rounded
-              : Icons.play_arrow_rounded),
-          color: Colors.white,
-          size: 34,
-        ),
-        onPressed: () {
-          final controller = ref.read(audioControllerProvider.notifier);
-          if (processingState == ProcessingState.completed) {
-            controller.replay();
-          } else {
-            controller.togglePlayPause();
-          }
-        },
-      ),
+              icon: Icon(
+                processingState == ProcessingState.completed
+                    ? Icons.replay_rounded
+                    : (playing
+                          ? Icons.pause_rounded
+                          : Icons.play_arrow_rounded),
+                color: Colors.white,
+                size: 34,
+              ),
+              onPressed: () {
+                final controller = ref.read(audioControllerProvider.notifier);
+                if (processingState == ProcessingState.completed) {
+                  controller.replay();
+                } else {
+                  controller.togglePlayPause();
+                }
+              },
+            ),
     );
   }
 }
