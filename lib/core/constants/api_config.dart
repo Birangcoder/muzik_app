@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const baseUrl = "https://8b7e-2409-40c1-4-6e72-40e-8b12-4f5f-ccbe.ngrok-free.app/MusicAPI-v2/public";
+  static const baseUrl = "https://musicapi-1xqp.onrender.com";
 
   static const login = "$baseUrl/auth/login";
 

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/helper/imageSize.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/responsive.dart';
@@ -35,7 +36,7 @@ class SquareCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(AppRadius.chip),
               child: CachedNetworkImage(
-                imageUrl: coverImg,
+                imageUrl: CloudinaryImage.resize(coverImg, width: size * 2),
                 width: size,
                 height: size,
                 fit: BoxFit.cover,
@@ -48,11 +49,8 @@ class SquareCard extends StatelessWidget {
                 maxWidthDiskCache: (size * 2).toInt(),
                 maxHeightDiskCache: (size * 2).toInt(),
 
-                placeholder: (context, url) => Container(
-                  width: size,
-                  height: size,
-                  color: colors.surface,
-                ),
+                placeholder: (context, url) =>
+                    Container(width: size, height: size, color: colors.surface),
                 errorWidget: (context, url, error) => Container(
                   width: size,
                   height: size,
@@ -78,9 +76,7 @@ class SquareCard extends StatelessWidget {
               artist,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: textTheme.labelMedium?.copyWith(
-                color: colors.text2,
-              ),
+              style: textTheme.labelMedium?.copyWith(color: colors.text2),
             ),
           ],
         ),

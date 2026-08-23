@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/helper/imageSize.dart';
 import '../../../song/data/models/songs_model.dart';
 
 class SongListTile extends StatelessWidget {
@@ -27,7 +28,7 @@ class SongListTile extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: CachedNetworkImage(
-                imageUrl: song.media.coverUrl,
+                imageUrl: CloudinaryImage.resize(song.media.coverUrl, width: 160),
                 width: 80,
                 height: 80,
                 fit: BoxFit.cover,

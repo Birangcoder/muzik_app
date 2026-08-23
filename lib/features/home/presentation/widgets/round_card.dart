@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/helper/imageSize.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/utils/responsive.dart';
@@ -34,7 +35,7 @@ class RoundCard extends StatelessWidget {
           children: [
             ClipOval(
               child: CachedNetworkImage(
-                imageUrl: coverImg,
+                imageUrl: CloudinaryImage.resize(coverImg, width: size * 2),
                 width: size,
                 height: size,
                 fit: BoxFit.cover,
