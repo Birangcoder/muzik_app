@@ -48,10 +48,10 @@ class StatisticsModel {
 
   factory StatisticsModel.fromJson(Map<String, dynamic> json) {
     return StatisticsModel(
-      playCount: json["playCount"] != null ? json["playCount"] as int : null,
-      likeCount: json["likeCount"] != null ? json["likeCount"] as int : null,
-      downloadCount: json["downloadCount"] != null
-          ? json["downloadCount"] as int
+      playCount: json["play_count"] != null ? json["play_count"] as int : null,
+      likeCount: json["like_count"] != null ? json["like_count"] as int : null,
+      downloadCount: json["download_count"] != null
+          ? json["download_count"] as int
           : null,
     );
   }
