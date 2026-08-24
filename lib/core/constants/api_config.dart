@@ -18,6 +18,10 @@ class ApiConfig {
   static String songPlay(int id) => "$baseUrl/songs/$id/play";
 
   static String songProgress(int id) => "$baseUrl/songs/$id/progress";
+
+  static String songRemoveFavorite(int id) => "$baseUrl/favorites/$id";
+
+  static const songFavorite = "$baseUrl/favorites";
   //
   // static const categories = "$baseUrl/products/categories";
   //

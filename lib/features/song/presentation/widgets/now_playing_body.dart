@@ -38,7 +38,7 @@ class NowPlayingBody extends StatelessWidget {
                   const SizedBox(height: 8),
                   CoverArt(url: song.media.coverUrl),
                   const SizedBox(height: 24),
-                  LikeAndPlayRow(likeCount: song.statistics?.likeCount),
+                  LikeAndPlayRow(likeCount: song.statistics?.likeCount, songId: song.id),
                   const SizedBox(height: 28),
                   Text(
                     song.title,

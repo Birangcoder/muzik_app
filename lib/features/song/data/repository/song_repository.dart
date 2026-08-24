@@ -28,6 +28,48 @@ class SongRepository {
     return SongModel.fromJson(data);
   }
 
+  Future<List<int>> fetchUserFavoriteSongIds() async {
+    final session = await _storage.readTokens();
+    final response = await http.get(
+      Uri.parse(ApiConfig.songFavorite),
+      headers: {
+        'Content-Type': 'application/json',
+        if (session != null && session.accessToken.isNotEmpty)
+          'Authorization': 'Bearer ${session.accessToken}',
+      },
+    );
+
+    final data = unwrapData(response) as Map<String, dynamic>;
+    final tracks = data['tracks'] as List<dynamic>;
+    print("favorite: ${tracks.map((song) => song['id'] as int).toList()}");
+    return tracks.map((song) => song['id'] as int).toList();
+  }
+
+  Future<void> addSongToFavorites(int id) async {
+    final session = await _storage.readTokens();
+    await http.post(
+      Uri.parse(ApiConfig.songFavorite),
+      headers: {
+        'Content-Type': 'application/json',
+        if (session != null && session.accessToken.isNotEmpty)
+          'Authorization': 'Bearer ${session.accessToken}',
+      },
+      body: jsonEncode({'song_id': id}),
+    );
+  }
+
+  Future<void> removeSongFromFavorites(int id) async {
+    final session = await _storage.readTokens();
+    await http.delete(
+      Uri.parse(ApiConfig.songRemoveFavorite(id)),
+      headers: {
+        'Content-Type': 'application/json',
+        if (session != null && session.accessToken.isNotEmpty)
+          'Authorization': 'Bearer ${session.accessToken}',
+      },
+    );
+  }
+
   /// POST /songs/:id/play — the side-effecting call.
   /// Bumps play_count, adds history, adds view — all handled server-side.
   // song_repository.dart

@@ -19,3 +19,8 @@ final songListProvider = FutureProvider<List<SongModel>>((ref) async {
   final api = ref.watch(songApiServiceProvider);
   return api.fetchAllSong();
 });
+
+final userFavoritesProvider = FutureProvider<List<int>>((ref) async {
+  final api = ref.watch(songApiServiceProvider);
+  return api.fetchUserFavoriteSongIds();
+});
