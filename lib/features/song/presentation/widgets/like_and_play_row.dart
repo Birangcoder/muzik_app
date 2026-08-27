@@ -94,38 +94,38 @@ class _LikeAndPlayRowState extends ConsumerState<LikeAndPlayRow> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           // ── LIKE BUTTON ──
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                iconSize: 26,
-                icon: _isLoading
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: colors.purple,
-                        ),
-                      )
-                    : Icon(
-                        isLiked
-                            ? Icons.favorite_rounded
-                            : Icons.favorite_border_rounded,
-                        color: isLiked ? colors.purple : colors.text2,
-                      ),
-                onPressed: buttonDisabled ? null : _toggleLike,
-              ),
-              if (_displayCount != null)
-                Text(
-                  _formatCount(_displayCount),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.labelSmall?.copyWith(color: colors.text3),
-                ),
-            ],
+          // Column(
+          //   mainAxisSize: MainAxisSize.min,
+          //   children: [
+          IconButton(
+            iconSize: 26,
+            icon: _isLoading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colors.purple,
+                    ),
+                  )
+                : Icon(
+                    isLiked
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    color: isLiked ? colors.purple : colors.text2,
+                  ),
+            onPressed: buttonDisabled ? null : _toggleLike,
           ),
 
+          // if (_displayCount != null)
+          //   Text(
+          //     _formatCount(_displayCount),
+          //     style: Theme.of(
+          //       context,
+          //     ).textTheme.labelSmall?.copyWith(color: colors.text3),
+          //   ),
+          // ],
+          // ),
           const SizedBox(width: 24),
 
           // ── PLAY/PAUSE BUTTON ──
@@ -172,13 +172,13 @@ class _LikeAndPlayRowState extends ConsumerState<LikeAndPlayRow> {
   }
 }
 
-String _formatCount(int? n) {
-  if (n == null) return '—';
-  final s = n.toString();
-  final buf = StringBuffer();
-  for (int i = 0; i < s.length; i++) {
-    if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
-    buf.write(s[i]);
-  }
-  return buf.toString();
-}
+// String _formatCount(int? n) {
+//   if (n == null) return '—';
+//   final s = n.toString();
+//   final buf = StringBuffer();
+//   for (int i = 0; i < s.length; i++) {
+//     if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
+//     buf.write(s[i]);
+//   }
+//   return buf.toString();
+// }
