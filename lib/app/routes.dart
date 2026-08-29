@@ -13,6 +13,7 @@ import '../features/mainScreen/presentation/page/mainScreen.dart';
 import '../features/profile/presentation/pages/profile_screen.dart';
 import '../features/search/presentation/pages/search_screen.dart';
 import '../features/song/presentation/pages/song.dart';
+import '../features/song/presentation/pages/trending_page.dart';
 import '../features/splash/presentation/page/splash_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -51,6 +52,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: RouteName.songs,
         builder: (_, _) => const HomeScreen(),
         // song route removed from here — moved into the ShellRoute below
+      ),
+      GoRoute(
+        path: '/trending',
+        name: RouteName.trending,
+        builder: (_, _) => const TrendingPage(),
       ),
       GoRoute(
         path: '/splash',

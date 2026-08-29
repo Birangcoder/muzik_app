@@ -6,7 +6,7 @@ class PaginationModel {
   final bool hasNext;
   final bool hasPrevious;
 
-  PaginationModel({
+  const PaginationModel({
     required this.page,
     required this.limit,
     required this.total,
@@ -17,12 +17,12 @@ class PaginationModel {
 
   factory PaginationModel.fromJson(Map<String, dynamic> json) {
     return PaginationModel(
-      page: json['page'] as int,
-      limit: json['limit'] as int,
-      total: json['total'] as int,
-      totalPages: json['total_pages'] as int,
-      hasNext: json['has_next'] as bool,
-      hasPrevious: json['has_previous'] as bool,
+      page: json['page'] ?? 1,
+      limit: json['limit'] ?? 20,
+      total: json['total'] ?? 0,
+      totalPages: json['total_pages'] ?? 0,
+      hasNext: json['has_next'] ?? false,
+      hasPrevious: json['has_previous'] ?? false,
     );
   }
 }

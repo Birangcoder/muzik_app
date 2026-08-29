@@ -8,4 +8,5 @@ class RouteName{
   static const splash = 'splash';
   static const songs = 'songs';
   static const song = 'song';
+  static const trending = 'trending';
 }

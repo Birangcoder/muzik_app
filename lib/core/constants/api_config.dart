@@ -13,6 +13,8 @@ class ApiConfig {
 
   static const songs = "$baseUrl/songs";
 
+  static const trending = "$baseUrl/songs/trending";
+
   static String song(int id) => "$baseUrl/songs/$id";
 
   static String songPlay(int id) => "$baseUrl/songs/$id/play";

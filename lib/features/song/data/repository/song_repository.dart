@@ -21,6 +21,21 @@ class SongRepository {
     return list.map((e) => SongModel.fromJson(e)).toList();
   }
 
+  Future<SongPageModel> fetchTrendingSong({
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final uri = Uri.parse(ApiConfig.trending).replace(
+      queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+    );
+
+    final response = await http.get(uri);
+
+    final data = unwrapData(response) as Map<String, dynamic>;
+
+    return SongPageModel.fromJson(data);
+  }
+
   Future<SongModel> fetchSongById(int id) async {
     final response = await http.get(Uri.parse(ApiConfig.song(id)));
 

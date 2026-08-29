@@ -12,8 +12,8 @@ import '../../../auth/presentation/provider/current_user_provider.dart';
 import '../providers/home_provider.dart';
 import '../widgets/home_section.dart';
 import '../widgets/song_list_section.dart';
-import '../widgets/square_card.dart';
-import '../widgets/round_card.dart';
+import '../../../../shared/widgets/square_card.dart';
+import '../../../../shared/widgets/round_card.dart';
 import '../widgets/searchBar.dart';
 import '../widgets/trending_card.dart';
 
@@ -102,7 +102,7 @@ class HomeScreen extends ConsumerWidget {
                         title: "trending",
                         height: Responsive.trendingRailHeight(context),
                         items: home.trending,
-                        onSeeAll: () {},
+                        onSeeAll: () => context.pushNamed(RouteName.trending),
                         itemBuilder: (context, track, i) => TrendingCard(
                           rank: i + 1,
                           title: track.title,

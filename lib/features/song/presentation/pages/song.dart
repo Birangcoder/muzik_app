@@ -23,7 +23,9 @@ class _SongPageState extends ConsumerState<SongPage> {
   @override
   void initState() {
     super.initState();
-    ref.read(isPlayerMinimizedProvider.notifier).state = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(isPlayerMinimizedProvider.notifier).state = false;
+    });
   }
 
   Future<void> _handleExit() async {

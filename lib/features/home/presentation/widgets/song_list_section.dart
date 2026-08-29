@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/appRouteName.dart';
 import 'show_song_options.dart';
-import 'song_list_tile.dart';
+import '../../../../shared/widgets/song_list_tile.dart';
 
 import '../../../../core/utils/responsive.dart';
 import '../../../song/data/models/songs_model.dart';

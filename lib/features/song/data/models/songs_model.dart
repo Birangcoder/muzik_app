@@ -1,6 +1,8 @@
 import 'package:muzik/shared/models/artists_model.dart';
 import 'package:muzik/shared/models/reference_models.dart';
 
+import '../../../../shared/models/pagination_model.dart';
+
 class MediaModel {
   final String audioUrl;
   final String coverUrl;
@@ -103,6 +105,24 @@ class SongModel {
                 .map((g) => GenresRef.fromJson(g as Map<String, dynamic>))
                 .toList()
           : null,
+    );
+  }
+}
+
+class SongPageModel {
+  final List<SongModel> tracks;
+  final PaginationModel pagination;
+
+  const SongPageModel({required this.tracks, required this.pagination});
+
+  factory SongPageModel.fromJson(Map<String, dynamic> json) {
+    return SongPageModel(
+      tracks: (json['tracks'] as List? ?? [])
+          .map((item) => SongModel.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      pagination: PaginationModel.fromJson(
+        json['pagination'] as Map<String, dynamic>? ?? {},
+      ),
     );
   }
 }

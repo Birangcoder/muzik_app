@@ -1,21 +1,20 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/helper/imageSize.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/utils/responsive.dart';
+import '../../core/helper/imageSize.dart';
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_spacing.dart';
+import '../../core/utils/responsive.dart';
 
-class RoundCard extends StatelessWidget {
-  final String name;
-
-  // final int trackCount;
+class SquareCard extends StatelessWidget {
+  final String title;
+  final String artist;
   final String coverImg;
   final VoidCallback? onTap;
 
-  const RoundCard({
+  const SquareCard({
     super.key,
-    required this.name,
-    // required this.trackCount,
+    required this.title,
+    required this.artist,
     required this.coverImg,
     this.onTap,
   });
@@ -27,13 +26,15 @@ class RoundCard extends StatelessWidget {
     final size = Responsive.mediaCardSize(context);
 
     return InkWell(
-      borderRadius: BorderRadius.circular(size / 2),
+      borderRadius: BorderRadius.circular(AppRadius.chip),
       onTap: onTap,
       child: SizedBox(
         width: size,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipOval(
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AppRadius.chip),
               child: CachedNetworkImage(
                 imageUrl: CloudinaryImage.resize(coverImg, width: size * 2),
                 width: size,
@@ -48,15 +49,13 @@ class RoundCard extends StatelessWidget {
                 maxWidthDiskCache: (size * 2).toInt(),
                 maxHeightDiskCache: (size * 2).toInt(),
 
-                placeholder: (context, url) => SizedBox(
+                placeholder: (context, url) =>
+                    Container(width: size, height: size, color: colors.surface),
+                errorWidget: (context, url, error) => Container(
                   width: size,
                   height: size,
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-                errorWidget: (context, url, error) => SizedBox(
-                  width: size,
-                  height: size,
-                  child: const Icon(Icons.person),
+                  color: colors.surface,
+                  child: const Icon(Icons.music_note),
                 ),
               ),
             ),
@@ -64,13 +63,20 @@ class RoundCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
 
             Text(
-              name,
+              title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: textTheme.bodyLarge?.copyWith(
                 color: colors.text,
                 fontWeight: FontWeight.w600,
               ),
+            ),
+
+            Text(
+              artist,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.labelMedium?.copyWith(color: colors.text2),
             ),
           ],
         ),
