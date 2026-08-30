@@ -73,7 +73,7 @@ class _PaginatedSongListViewState extends State<PaginatedSongListView> {
     }
 
     if (widget.error != null && widget.tracks.isEmpty) {
-      return _ErrorState(onRetry: widget.onRefresh);
+      return _ErrorState(onRetry: widget.onRefresh, titile: widget.title);
     }
 
     if (widget.tracks.isEmpty) {
@@ -207,8 +207,9 @@ class _SongTileSkeleton extends StatelessWidget {
 
 class _ErrorState extends StatelessWidget {
   final VoidCallback onRetry;
+  final String titile;
 
-  const _ErrorState({required this.onRetry});
+  const _ErrorState({required this.onRetry, required this.titile});
 
   @override
   Widget build(BuildContext context) {
@@ -227,7 +228,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              "Couldn't load trending songs",
+              "Couldn't load $titile songs",
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),

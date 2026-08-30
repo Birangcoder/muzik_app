@@ -9,7 +9,7 @@ import '../../../../shared/models/album_model.dart';
 import '../../../../shared/models/artists_model.dart';
 import '../../../song/data/models/songs_model.dart';
 import '../../../auth/presentation/provider/current_user_provider.dart';
-import '../../../song/data/repository/trending_repository.dart';
+import '../../../song/presentation/providers/song_lists_providers.dart';
 import '../providers/home_provider.dart';
 import '../widgets/home_section.dart';
 import '../widgets/song_list_section.dart';
@@ -128,7 +128,13 @@ class HomeScreen extends ConsumerWidget {
                         title: "new releases",
                         height: Responsive.mediaRailHeight(context),
                         items: home.newReleases,
-                        onSeeAll: () {},
+                        onSeeAll: () => context.pushNamed(
+                          RouteName.trackList,
+                          extra: {
+                            'provider': newReleaseProvider,
+                            'title': 'New Release',
+                          },
+                        ),
                         itemBuilder: (context, song, i) => SquareCard(
                           title: song.title,
                           artist: song.artists
@@ -182,7 +188,13 @@ class HomeScreen extends ConsumerWidget {
                         title: "recommended for you",
                         height: Responsive.mediaRailHeight(context),
                         items: home.recommended,
-                        onSeeAll: () {},
+                        onSeeAll: () => context.pushNamed(
+                          RouteName.trackList,
+                          extra: {
+                            'provider': recommendedProvider,
+                            'title': 'Recommended',
+                          },
+                        ),
                         emptyWidget: const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -209,7 +221,13 @@ class HomeScreen extends ConsumerWidget {
                         title: "continue listening",
                         height: Responsive.mediaRailHeight(context),
                         items: home.continueListening,
-                        onSeeAll: () {},
+                        onSeeAll: () => context.pushNamed(
+                          RouteName.trackList,
+                          extra: {
+                            'provider': historyProvider,
+                            'title': 'History',
+                          },
+                        ),
                         emptyWidget: const Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [Text('Start listening ')],

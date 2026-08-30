@@ -73,7 +73,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: RouteName.trackList,
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
-          return TrendingPage(
+          return TrackListPage(
             provider: extra?['provider'],
             title: extra?['title'] ?? 'Track List',
           );

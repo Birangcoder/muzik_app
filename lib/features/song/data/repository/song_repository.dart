@@ -36,11 +36,89 @@ class SongRepository {
     return SongPageModel.fromJson(data);
   }
 
+  Future<SongPageModel> fetchLatestSong({int page = 1, int limit = 20}) async {
+    final uri = Uri.parse(ApiConfig.latestSong).replace(
+      queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+    );
+
+    final response = await http.get(uri);
+
+    final data = unwrapData(response) as Map<String, dynamic>;
+
+    return SongPageModel.fromJson(data);
+  }
+
+  Future<SongPageModel> fetchRecommendedSong({
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final session = await _storage.readTokens();
+    final uri = Uri.parse(ApiConfig.recommendedSong).replace(
+      queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+    );
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        if (session != null && session.accessToken.isNotEmpty)
+          'Authorization': 'Bearer ${session.accessToken}',
+      },
+    );
+
+    final data = unwrapData(response) as Map<String, dynamic>;
+
+    return SongPageModel.fromJson(data);
+  }
+
+  Future<SongPageModel> fetchHistory({int page = 1, int limit = 20}) async {
+    final session = await _storage.readTokens();
+    final uri = Uri.parse(ApiConfig.history).replace(
+      queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+    );
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        if (session != null && session.accessToken.isNotEmpty)
+          'Authorization': 'Bearer ${session.accessToken}',
+      },
+    );
+
+    final data = unwrapData(response) as Map<String, dynamic>;
+
+    return SongPageModel.fromJson(data);
+  }
+
   Future<SongModel> fetchSongById(int id) async {
     final response = await http.get(Uri.parse(ApiConfig.song(id)));
 
     final data = unwrapData(response) as Map<String, dynamic>;
     return SongModel.fromJson(data);
+  }
+
+  Future<SongPageModel> fetchFavoriteSong({
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final session = await _storage.readTokens();
+    final uri = Uri.parse(ApiConfig.songFavorite).replace(
+      queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+    );
+
+    final response = await http.get(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        if (session != null && session.accessToken.isNotEmpty)
+          'Authorization': 'Bearer ${session.accessToken}',
+      },
+    );
+
+    final data = unwrapData(response) as Map<String, dynamic>;
+
+    return SongPageModel.fromJson(data);
   }
 
   Future<List<int>> fetchUserFavoriteSongIds() async {

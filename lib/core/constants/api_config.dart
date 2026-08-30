@@ -24,6 +24,12 @@ class ApiConfig {
   static String songRemoveFavorite(int id) => "$baseUrl/favorites/$id";
 
   static const songFavorite = "$baseUrl/favorites";
+
+  static const history = "$baseUrl/history";
+
+  static const latestSong = "$baseUrl/songs/latest";
+
+  static const recommendedSong = "$baseUrl/songs/recommended";
   //
   // static const categories = "$baseUrl/products/categories";
   //

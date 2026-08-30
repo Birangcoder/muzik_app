@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/PaginatedSongListView.dart';
 // import '../../data/repository/trending_repository.dart';
 
-class TrendingPage extends ConsumerWidget {
+class TrackListPage extends ConsumerWidget {
   final provider;
   final title;
-  const TrendingPage({super.key, required this.provider, required this.title});
+  const TrackListPage({super.key, required this.provider, required this.title});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
