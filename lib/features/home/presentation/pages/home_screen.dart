@@ -9,6 +9,7 @@ import '../../../../shared/models/album_model.dart';
 import '../../../../shared/models/artists_model.dart';
 import '../../../song/data/models/songs_model.dart';
 import '../../../auth/presentation/provider/current_user_provider.dart';
+import '../../../song/data/repository/trending_repository.dart';
 import '../providers/home_provider.dart';
 import '../widgets/home_section.dart';
 import '../widgets/song_list_section.dart';
@@ -102,7 +103,13 @@ class HomeScreen extends ConsumerWidget {
                         title: "trending",
                         height: Responsive.trendingRailHeight(context),
                         items: home.trending,
-                        onSeeAll: () => context.pushNamed(RouteName.trending),
+                        onSeeAll: () => context.pushNamed(
+                          RouteName.trackList,
+                          extra: {
+                            'provider': trendingProvider,
+                            'title': 'Trending',
+                          },
+                        ),
                         itemBuilder: (context, track, i) => TrendingCard(
                           rank: i + 1,
                           title: track.title,

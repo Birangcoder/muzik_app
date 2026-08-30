@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,13 +14,27 @@ import '../features/mainScreen/presentation/page/mainScreen.dart';
 import '../features/profile/presentation/pages/profile_screen.dart';
 import '../features/search/presentation/pages/search_screen.dart';
 import '../features/song/presentation/pages/song.dart';
-import '../features/song/presentation/pages/trending_page.dart';
+import '../features/song/presentation/pages/track_list_page.dart';
 import '../features/splash/presentation/page/splash_screen.dart';
 
+// A single stable key for GoRouter's root Navigator. Also useful if any
+// widget ever needs the root navigator context directly.
+final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final refreshNotifier = ref.watch(goRouterRefreshProvider);
+  // IMPORTANT: read, not watch. GoRouter's own `refreshListenable` already
+  // listens to this notifier internally and re-runs `redirect` whenever it
+  // fires — Riverpod does not need to rebuild (and must not rebuild) the
+  // whole GoRouter instance on every auth change. Watching it here causes
+  // GoRouter to be torn down and reconstructed mid-app-lifetime, which
+  // creates a second internal root Navigator with a colliding default key
+  // while the old one is still disposing — the source of the
+  // "GlobalKey was used multiple times", "_debugLocked", and
+  // "duplicated page keys" crashes.
+  final refreshNotifier = ref.read(goRouterRefreshProvider);
 
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
@@ -54,9 +69,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         // song route removed from here — moved into the ShellRoute below
       ),
       GoRoute(
-        path: '/trending',
-        name: RouteName.trending,
-        builder: (_, _) => const TrendingPage(),
+        path: '/trackList',
+        name: RouteName.trackList,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>;
+          return TrendingPage(
+            provider: extra?['provider'],
+            title: extra?['title'] ?? 'Track List',
+          );
+        },
+      ),
+      GoRoute(
+        path: '/song/:id',
+        name: RouteName.song,
+        builder: (context, state) {
+          final int id = int.parse(state.pathParameters['id']!);
+          return SongPage(songId: id);
+        },
       ),
       GoRoute(
         path: '/splash',
@@ -88,16 +117,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/',
             name: RouteName.home,
             builder: (_, _) => const HomeScreen(),
-            routes: [
-              GoRoute(
-                path: 'song/:id', // full path becomes /song/:id
-                name: RouteName.song,
-                builder: (context, state) {
-                  final int id = int.parse(state.pathParameters['id']!);
-                  return SongPage(songId: id);
-                },
-              ),
-            ],
           ),
 
           GoRoute(

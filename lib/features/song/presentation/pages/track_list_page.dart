@@ -2,24 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/widgets/PaginatedSongListView.dart';
-import '../../data/repository/trending_repository.dart';
+// import '../../data/repository/trending_repository.dart';
 
 class TrendingPage extends ConsumerWidget {
-  const TrendingPage({super.key});
+  final provider;
+  final title;
+  const TrendingPage({super.key, required this.provider, required this.title});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(trendingProvider);
+    final state = ref.watch(provider);
 
     return PaginatedSongListView(
-      title: 'Trending',
+      title: title,
       tracks: state.tracks,
       isLoading: state.isLoading,
       isLoadingMore: state.isLoadingMore,
       hasNext: state.hasNext,
       error: state.error,
-      onRefresh: () => ref.read(trendingProvider.notifier).refresh(),
-      onLoadMore: () => ref.read(trendingProvider.notifier).loadMore(),
+      onRefresh: () => ref.read(provider.notifier).refresh(),
+      onLoadMore: () => ref.read(provider.notifier).loadMore(),
     );
   }
 }

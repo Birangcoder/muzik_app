@@ -4,7 +4,8 @@ import 'package:muzik/core/constants/appRouteName.dart';
 import 'package:muzik/core/theme/app_spacing.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/widgets/floating_mini_player.dart';
+// FloatingMiniPlayer now lives at the app root (see main.dart's MaterialApp
+// builder) so it shows on every screen, not just ones nested in this shell.
 
 class MainScreen extends StatelessWidget {
   final Widget child;
@@ -24,12 +25,7 @@ class MainScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: context.colors.background,
       body: SafeArea(
-        child: Stack(
-          children: [
-            Padding(padding: AppSpacing.screenMargin, child: child),
-            const FloatingMiniPlayer(),
-          ],
-        ),
+        child: Padding(padding: AppSpacing.screenMargin, child: child),
       ),
       bottomNavigationBar: NavigationBar(
         indicatorColor: context.colors.surface2,

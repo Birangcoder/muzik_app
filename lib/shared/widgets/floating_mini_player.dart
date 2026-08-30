@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../../app/routes.dart';
+import '../../core/constants/appRouteName.dart';
 import '../../core/theme/app_colors.dart';
-import '../../features/song/presentation/pages/song.dart';
 import '../../features/song/presentation/providers/song_provider.dart';
 import '../../providers/audio_player_provider.dart';
 import '../../providers/player_ui_provider.dart';
@@ -27,42 +28,92 @@ class _FloatingMiniPlayerState extends ConsumerState<FloatingMiniPlayer> {
 
     if (!isMinimized || songId == null) return const SizedBox.shrink();
 
+    // LayoutBuilder gives real, settled constraints (avoids the zero-size
+    // race on the very first frame). Positioned MUST be a direct child of a
+    // Stack, so we build that Stack ourselves right here instead of relying
+    // on some ancestor Stack we don't control (since this widget now lives
+    // inside our own Overlay at the app root — see main.dart).
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenSize = Size(constraints.maxWidth, constraints.maxHeight);
+        if (screenSize.width == 0 || screenSize.height == 0) {
+          return const SizedBox.shrink();
+        }
+        return SizedBox(
+          width: screenSize.width,
+          height: screenSize.height,
+          child: Stack(
+            children: [
+              _MiniPlayerContent(songId: songId, screenSize: screenSize),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _MiniPlayerContent extends ConsumerWidget {
+  final int songId;
+  final Size screenSize;
+
+  const _MiniPlayerContent({required this.songId, required this.screenSize});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
-    final screenSize = MediaQuery.of(context).size;
     final topInset = MediaQuery.of(context).padding.top;
 
     final saved = ref.watch(miniPlayerOffsetProvider);
     final offset =
         saved ??
-        Offset(
-          screenSize.width - _kBarWidth - 16,
-          screenSize.height - _kBarHeight - 140,
-        );
+            Offset(
+              screenSize.width - _kBarWidth - 16,
+              screenSize.height - _kBarHeight - 140,
+            );
+
+    // Defensive bounds — never let a clamp's min exceed its max, even on
+    // unusually small screens.
+    final maxDx = (screenSize.width - _kBarWidth - 8).clamp(
+      8.0,
+      double.infinity,
+    );
+    final maxDy = (screenSize.height - _kBarHeight - 24).clamp(
+      topInset + 8,
+      double.infinity,
+    );
+
+    final clampedOffset = Offset(
+      offset.dx.clamp(8.0, maxDx),
+      offset.dy.clamp(topInset + 8, maxDy),
+    );
 
     final songAsync = ref.watch(songProvider(songId));
 
     return Positioned(
-      left: offset.dx,
-      top: offset.dy,
+      left: clampedOffset.dx,
+      top: clampedOffset.dy,
       child: GestureDetector(
         onPanUpdate: (details) {
           final next = Offset(
-            (offset.dx + details.delta.dx).clamp(
-              8.0,
-              screenSize.width - _kBarWidth - 8,
-            ),
-            (offset.dy + details.delta.dy).clamp(
-              topInset + 8,
-              screenSize.height - _kBarHeight - 24,
-            ),
+            (clampedOffset.dx + details.delta.dx).clamp(8.0, maxDx),
+            (clampedOffset.dy + details.delta.dy).clamp(topInset + 8, maxDy),
           );
           ref.read(miniPlayerOffsetProvider.notifier).state = next;
         },
         onTap: () {
           ref.read(isPlayerMinimizedProvider.notifier).state = false;
-          Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => SongPage(songId: songId)));
+          // Call GoRouter directly (not via context/Navigator). This widget
+          // lives outside go_router's own Navigator tree, and mixing
+          // Navigator.push with go_router's declarative pages caused
+          // duplicate-key crashes. router.pushNamed is a plain instance
+          // method — no BuildContext/ancestor lookup needed at all.
+          ref
+              .read(routerProvider)
+              .pushNamed(
+            RouteName.song,
+            pathParameters: {'id': songId.toString()},
+          );
         },
         child: Material(
           color: Colors.transparent,

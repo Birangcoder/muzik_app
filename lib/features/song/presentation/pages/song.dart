@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../providers/audio_player_provider.dart';
@@ -28,18 +29,26 @@ class _SongPageState extends ConsumerState<SongPage> {
     });
   }
 
+  void _popOrGoHome() {
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go('/');
+    }
+  }
+
   Future<void> _handleExit() async {
     if (_isExiting) return;
     _isExiting = true;
     await ref.read(audioControllerProvider.notifier).stopAndReportProgress();
-    if (mounted) Navigator.of(context).pop();
+    if (mounted) _popOrGoHome();
   }
 
   void _handleMinimize() {
     if (_isExiting) return;
     _isExiting = true;
     ref.read(isPlayerMinimizedProvider.notifier).state = true;
-    if (mounted) Navigator.of(context).pop();
+    if (mounted) _popOrGoHome();
   }
 
   @override
