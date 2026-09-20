@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/section_head.dart';
+import '../widgets/section_header.dart';
 
 import '../../../../core/utils/responsive.dart';
 

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../providers/audio_player_provider.dart';
+import '../../../player/presentation/providers/audio_player_provider.dart';
 
 class SeekBar extends ConsumerStatefulWidget {
   final Duration fallbackDuration;

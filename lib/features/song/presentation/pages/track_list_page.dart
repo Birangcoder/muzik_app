@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../shared/widgets/PaginatedSongListView.dart';
-// import '../../data/repository/trending_repository.dart';
+import '../widgets/paginated_song_list_view.dart';
 
 class TrackListPage extends ConsumerWidget {
   final provider;
   final title;
+
   const TrackListPage({super.key, required this.provider, required this.title});
 
   @override

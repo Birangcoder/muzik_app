@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../providers/audio_player_provider.dart';
+import '../../../player/presentation/providers/audio_player_provider.dart';
 import '../providers/song_provider.dart';
 
 class LikeAndPlayRow extends ConsumerStatefulWidget {

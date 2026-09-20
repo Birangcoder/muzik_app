@@ -1,4 +1,4 @@
-import 'songs_model.dart';
+import 'song_model.dart';
 
 class TrackState {
   final List<SongModel> tracks;

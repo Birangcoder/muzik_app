@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../providers/secure_storage_provider.dart';
-import '../../data/repository/song_repository.dart';
-import '../../data/models/songs_model.dart';
+import '../../../auth/presentation/providers/secure_storage_provider.dart';
+import '../../data/repositories/song_repository.dart';
+import '../../data/models/song_model.dart';
 
 final songApiServiceProvider = Provider<SongRepository>((ref) {
   return SongRepository(ref.watch(secureStorageServiceProvider));

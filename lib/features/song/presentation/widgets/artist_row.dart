@@ -1,12 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/helper/imageSize.dart';
+import '../../../../core/utils/image_size.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/models/artists_model.dart';
+import '../../../../shared/models/artist_model_ref.dart';
 
 class ArtistRow extends StatelessWidget {
-  final List<ArtistsModel> artists;
+  final List<ArtistsModelRef> artists;
 
   const ArtistRow({super.key, required this.artists});
 

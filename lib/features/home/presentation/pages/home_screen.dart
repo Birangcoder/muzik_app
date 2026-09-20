@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/appRouteName.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_gradients.dart';
 import '../../../../core/utils/responsive.dart';
-import '../../../../shared/models/album_model.dart';
-import '../../../../shared/models/artists_model.dart';
-import '../../../song/data/models/songs_model.dart';
-import '../../../auth/presentation/provider/current_user_provider.dart';
+import '../../../../shared/models/album_model_ref.dart';
+import '../../../../shared/models/artist_model_ref.dart';
+import '../../../../shared/widgets/round_card.dart';
+import '../../../../shared/widgets/square_card.dart';
+import '../../../auth/presentation/providers/current_user_provider.dart';
+import '../../../song/data/models/song_model.dart';
 import '../../../song/presentation/providers/song_lists_providers.dart';
 import '../providers/home_provider.dart';
 import '../widgets/home_section.dart';
+import '../widgets/search_bar.dart';
 import '../widgets/song_list_section.dart';
-import '../../../../shared/widgets/square_card.dart';
-import '../../../../shared/widgets/round_card.dart';
-import '../widgets/searchBar.dart';
 import '../widgets/trending_card.dart';
 
 String _greetingForHour(int hour) {
@@ -113,7 +113,7 @@ class HomeScreen extends ConsumerWidget {
                         itemBuilder: (context, track, i) => TrendingCard(
                           rank: i + 1,
                           title: track.title,
-                          artist: track.artists
+                          artist: track.artists!
                               .map((artist) => artist.name)
                               .join(', '),
                           gradient: gradients[i % gradients.length],
@@ -137,7 +137,7 @@ class HomeScreen extends ConsumerWidget {
                         ),
                         itemBuilder: (context, song, i) => SquareCard(
                           title: song.title,
-                          artist: song.artists
+                          artist: song.artists!
                               .map((artist) => artist.name)
                               .join(', '),
                           coverImg: song.media.coverUrl,
@@ -145,10 +145,11 @@ class HomeScreen extends ConsumerWidget {
                             RouteName.song,
                             pathParameters: {"id": song.id.toString()},
                           ),
+                          width: Responsive.mediaCardSize(context),
                         ),
                       ),
 
-                      HomeSection<ArtistsModel>(
+                      HomeSection<ArtistsModelRef>(
                         title: "popular artists",
                         height: Responsive.mediaRailHeight(context),
                         items: home.artists,
@@ -168,19 +169,17 @@ class HomeScreen extends ConsumerWidget {
                         songsPerColumn: 4,
                       ),
 
-                      HomeSection<AlbumModel>(
+                      HomeSection<AlbumModelRef>(
                         title: "popular album",
                         height: Responsive.mediaRailHeight(context),
                         items: home.albums,
-                        onSeeAll: () {},
+                        onSeeAll: () => context.pushNamed(RouteName.albumList),
                         itemBuilder: (context, album, i) => SquareCard(
                           title: album.title,
                           artist:
-                              album.artist
-                                  ?.map((artist) => artist.name)
-                                  .join(', ') ??
-                              '',
+                              album.artist?.map((a) => a.name).join(', ') ?? '',
                           coverImg: album.coverUrl,
+                          width: Responsive.mediaCardSize(context),
                         ),
                       ),
 
@@ -205,7 +204,7 @@ class HomeScreen extends ConsumerWidget {
                         itemBuilder: (context, song, i) {
                           return SquareCard(
                             title: song.title,
-                            artist: song.artists
+                            artist: song.artists!
                                 .map((artist) => artist.name)
                                 .join(', '),
                             coverImg: song.media.coverUrl,
@@ -213,6 +212,7 @@ class HomeScreen extends ConsumerWidget {
                               RouteName.song,
                               pathParameters: {"id": song.id.toString()},
                             ),
+                            width: Responsive.mediaCardSize(context),
                           );
                         },
                       ),
@@ -235,7 +235,7 @@ class HomeScreen extends ConsumerWidget {
                         itemBuilder: (context, song, i) {
                           return SquareCard(
                             title: song.title,
-                            artist: song.artists
+                            artist: song.artists!
                                 .map((artist) => artist.name)
                                 .join(', '),
                             coverImg: song.media.coverUrl,
@@ -243,6 +243,7 @@ class HomeScreen extends ConsumerWidget {
                               RouteName.song,
                               pathParameters: {"id": song.id.toString()},
                             ),
+                            width: Responsive.mediaCardSize(context),
                           );
                         },
                       ),

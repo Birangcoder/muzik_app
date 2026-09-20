@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/helper/imageSize.dart';
-import '../../features/song/data/models/songs_model.dart';
+import '../../core/utils/image_size.dart';
+import '../../features/song/data/models/song_model.dart';
 
 class SongListTile extends StatelessWidget {
   final SongModel song;
@@ -61,7 +61,7 @@ class SongListTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    song.artists.map((a) => a.name).join(', '),
+                    song.artists!.map((a) => a.name).join(', '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(fontSize: subtitleSize, color: Colors.grey.shade500),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/responsive.dart';
-import '../../data/models/songs_model.dart';
+import '../../data/models/song_model.dart';
 import 'artist_row.dart';
 import 'cover_art.dart';
 import 'genre_chips.dart';
@@ -64,7 +64,7 @@ class NowPlayingBody extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 18),
-                  ArtistRow(artists: song.artists),
+                  ArtistRow(artists: song.artists!),
                   if (song.genres != null && song.genres!.isNotEmpty) ...[
                     const SizedBox(height: 18),
                     GenreChips(genres: song.genres!),

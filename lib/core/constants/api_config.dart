@@ -30,6 +30,14 @@ class ApiConfig {
   static const latestSong = "$baseUrl/songs/latest";
 
   static const recommendedSong = "$baseUrl/songs/recommended";
+
+  static const albums = "$baseUrl/albums";
+
+  static const albumSearch = "$baseUrl/albums/search";
+
+  static String album(int id) => "$baseUrl/albums/$id";
+
+  static String albumTracks(int id) => "$baseUrl/albums/$id/tracks";
   //
   // static const categories = "$baseUrl/products/categories";
   //

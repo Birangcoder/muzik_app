@@ -2,20 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/constants/appRouteName.dart';
+import '../core/router/route_names.dart';
 import '../core/router/go_router_refresh_notifier.dart';
-import '../features/auth/data/model/auth_state.dart';
+import '../features/albums/presentation/pages/albums_list.dart';
+import '../features/auth/data/models/auth_state.dart';
 import '../features/auth/presentation/pages/login_screen.dart';
 import '../features/auth/presentation/pages/register_screen.dart';
-import '../features/auth/presentation/provider/authProvider.dart';
+import '../features/auth/presentation/providers/auth_provider.dart';
 import '../features/home/presentation/pages/home_screen.dart';
 import '../features/library/presentation/pages/library_screen.dart';
-import '../features/mainScreen/presentation/page/mainScreen.dart';
+import '../features/main_screen/presentation/pages/main_screen.dart';
 import '../features/profile/presentation/pages/profile_screen.dart';
 import '../features/search/presentation/pages/search_screen.dart';
-import '../features/song/presentation/pages/song.dart';
+import '../features/song/presentation/pages/song_page.dart';
 import '../features/song/presentation/pages/track_list_page.dart';
-import '../features/splash/presentation/page/splash_screen.dart';
+import '../features/splash/presentation/pages/splash_screen.dart';
 
 // A single stable key for GoRouter's root Navigator. Also useful if any
 // widget ever needs the root navigator context directly.
@@ -67,6 +68,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: RouteName.songs,
         builder: (_, _) => const HomeScreen(),
         // song route removed from here — moved into the ShellRoute below
+      ),
+      GoRoute(
+        path: '/albums',
+        name: RouteName.albumList,
+        builder: (_, _) => const AlbumsList(),
       ),
       GoRoute(
         path: '/trackList',

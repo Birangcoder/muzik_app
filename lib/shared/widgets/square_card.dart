@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../core/helper/imageSize.dart';
+
+import '../../core/utils/image_size.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/utils/responsive.dart';
@@ -11,76 +12,106 @@ class SquareCard extends StatelessWidget {
   final String coverImg;
   final VoidCallback? onTap;
 
+  /// Fixed width for horizontal-rail usage (home page).
+  /// Leave null when placed inside a GridView — it will then fill
+  /// whatever width the grid cell gives it instead.
+  final double? width;
+
   const SquareCard({
     super.key,
     required this.title,
     required this.artist,
     required this.coverImg,
     this.onTap,
+    this.width,
   });
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colors = context.colors;
-    final size = Responsive.mediaCardSize(context);
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(AppRadius.chip),
-      onTap: onTap,
-      child: SizedBox(
-        width: size,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.chip),
-              child: CachedNetworkImage(
-                imageUrl: CloudinaryImage.resize(coverImg, width: size * 2),
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
+    // Rail usage: fixed size. Grid usage: fill parent (LayoutBuilder below
+    // reads the actual cell width for correct memCache sizing).
+    final fixedWidth = width ?? Responsive.mediaCardSize(context);
 
-                // Don't decode a huge image when the card is small.
-                memCacheWidth: (size * 2).toInt(),
-                memCacheHeight: (size * 2).toInt(),
-
-                // Also keep a smaller version in disk cache.
-                maxWidthDiskCache: (size * 2).toInt(),
-                maxHeightDiskCache: (size * 2).toInt(),
-
-                placeholder: (context, url) =>
-                    Container(width: size, height: size, color: colors.surface),
-                errorWidget: (context, url, error) => Container(
-                  width: size,
-                  height: size,
-                  color: colors.surface,
-                  child: const Icon(Icons.music_note),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: AppSpacing.sm),
-
-            Text(
-              title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.bodyLarge?.copyWith(
-                color: colors.text,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-
-            Text(
-              artist,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: textTheme.labelMedium?.copyWith(color: colors.text2),
+    Widget cover(double cellWidth) => AspectRatio(
+      aspectRatio: 1,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppRadius.chip),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.16),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(AppRadius.chip),
+          child: CachedNetworkImage(
+            imageUrl: CloudinaryImage.resize(coverImg, width: cellWidth * 2),
+            fit: BoxFit.cover,
+            memCacheWidth: (cellWidth * 2).toInt(),
+            memCacheHeight: (cellWidth * 2).toInt(),
+            maxWidthDiskCache: (cellWidth * 2).toInt(),
+            maxHeightDiskCache: (cellWidth * 2).toInt(),
+            placeholder: (context, url) => Container(color: colors.surface),
+            errorWidget: (context, url, error) => Container(
+              color: colors.surface,
+              child: Icon(Icons.music_note, color: colors.text2),
+            ),
+          ),
+        ),
       ),
     );
+
+    Widget textBlock() => Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: textTheme.bodyLarge?.copyWith(
+            color: colors.text,
+            fontWeight: FontWeight.w600,
+            height: 1.2,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          artist,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: textTheme.labelMedium?.copyWith(
+            color: colors.text2,
+            height: 1.2,
+          ),
+        ),
+      ],
+    );
+
+    final card = InkWell(
+      borderRadius: BorderRadius.circular(AppRadius.chip),
+      onTap: onTap,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final cellWidth = width ?? constraints.maxWidth;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              RepaintBoundary(child: cover(cellWidth)),
+              textBlock(),
+            ],
+          );
+        },
+      ),
+    );
+
+    // Only wrap in a fixed-width SizedBox for rail usage.
+    return width != null ? SizedBox(width: fixedWidth, child: card) : card;
   }
 }

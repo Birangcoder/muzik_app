@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/models/songs_model.dart';
+import '../../data/models/song_model.dart';
 import '../../data/models/track_state.dart';
-import '../../data/repository/song_repository.dart';
+import '../../data/repositories/song_repository.dart';
 import 'song_provider.dart'; // wherever songApiServiceProvider / repository providers live
 import 'track_notifier.dart';
 

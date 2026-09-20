@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../providers/audio_player_provider.dart';
-import '../../../../providers/player_ui_provider.dart';
-import '../../../song/data/models/songs_model.dart';
+import '../../../player/presentation/providers/audio_player_provider.dart';
+import '../../../player/presentation/providers/player_ui_provider.dart';
+import '../../../song/data/models/song_model.dart';
 import '../../../song/presentation/providers/song_provider.dart';
 
 class SongOptionsSheet extends ConsumerStatefulWidget {
@@ -134,6 +134,7 @@ class SongOptionSheetState extends ConsumerState<SongOptionsSheet> {
               },
             ),
 
+            if (widget.song.haveAlbum!)
             ListTile(
               leading: const Icon(Icons.album_outlined),
               title: const Text('Go to album'),

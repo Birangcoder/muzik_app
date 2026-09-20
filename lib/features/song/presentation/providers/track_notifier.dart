@@ -1,14 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../data/models/songs_model.dart';
+import '../../data/models/song_model.dart';
 import '../../data/models/track_state.dart';
 
 abstract class TrackNotifier extends Notifier<TrackState> {
   static const int limit = 20;
 
-  /// The only thing each concrete list needs to implement — the actual
-  /// network call for one page. Everything else (loading flags, pagination
-  /// bookkeeping, appending, error handling) is shared here.
   Future<SongPageModel> fetchPage({required int page, required int limit});
 
   @override

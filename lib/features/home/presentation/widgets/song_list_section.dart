@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/appRouteName.dart';
+import '../../../../core/router/route_names.dart';
 import 'show_song_options.dart';
 import '../../../../shared/widgets/song_list_tile.dart';
 
 import '../../../../core/utils/responsive.dart';
-import '../../../song/data/models/songs_model.dart';
+import '../../../song/data/models/song_model.dart';
 
 class SongListSection extends StatelessWidget {
   final String title;
