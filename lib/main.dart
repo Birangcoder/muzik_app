@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app/routes.dart';
@@ -27,6 +28,7 @@ void main() {
   // A widget that throws while building shows a small message, not a
   // red/grey error screen with technical text.
   ErrorWidget.builder = (details) => const AppErrorWidget();
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
 
   runApp(
     ProviderScope(retry: (retryCount, error) => null, child: const MyApp()),
