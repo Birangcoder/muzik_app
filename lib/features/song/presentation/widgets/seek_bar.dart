@@ -53,7 +53,7 @@ class _SeekBarState extends ConsumerState<SeekBar> {
             activeTrackColor: colors.purple,
             inactiveTrackColor: colors.stroke,
             thumbColor: colors.text,
-            overlayColor: colors.purple.withOpacity(0.2),
+            overlayColor: colors.purple.withValues(alpha: 0.2),
             valueIndicatorColor: colors.purple,
             valueIndicatorTextStyle: TextStyle(
               color: colors.text,

@@ -228,9 +228,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       style: Theme.of(context).textTheme.labelSmall,
                       children: [
                         const TextSpan(text: 'Already have an account? '),
-                        TextSpan(
+                        const TextSpan(
                           text: 'Sign in',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Color(0xff1CB5E0),
                             fontWeight: FontWeight.w600,
                           ),
@@ -253,9 +253,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       style: Theme.of(context).textTheme.labelSmall,
                       children: [
                         const TextSpan(text: 'Not now, '),
-                        TextSpan(
+                        const TextSpan(
                           text: 'keep browsing',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Color(0xff1CB5E0),
                             fontWeight: FontWeight.w600,
                           ),

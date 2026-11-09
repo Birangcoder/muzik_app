@@ -4,7 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 
 class StatsRow extends StatelessWidget {
   final int? playCount;
-  final DateTime releaseDate;
+  final DateTime? releaseDate;
 
   const StatsRow({
     super.key,
@@ -24,10 +24,11 @@ class StatsRow extends StatelessWidget {
           ),
           const SizedBox(width: 20),
         ],
-        _StatChip(
-          icon: Icons.calendar_today_rounded,
-          label: _formatReleaseDate(releaseDate),
-        ),
+        if (releaseDate != null)
+          _StatChip(
+            icon: Icons.calendar_today_rounded,
+            label: _formatReleaseDate(releaseDate!),
+          ),
       ],
     );
   }
@@ -85,4 +86,4 @@ const _months = [
 ];
 
 String _formatReleaseDate(DateTime date) =>
-    '${date.day} ${_months[date.month - 1]} ${date.year}';
+    '${date.day} ${_months[(date.month - 1).clamp(0, 11)]} ${date.year}';

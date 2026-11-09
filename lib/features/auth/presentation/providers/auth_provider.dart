@@ -1,12 +1,10 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:riverpod/riverpod.dart';
+import '../../../../core/error/error_message.dart';
 import '../../data/models/auth_state.dart';
 import '../../data/repositories/auth_repository.dart';
-import '../../data/repositories/secure_storage_service.dart';
-
-final secureStorageServiceProvider = Provider<SecureStorageService>((ref) {
-  return SecureStorageService();
-});
+import 'secure_storage_provider.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(ref.watch(secureStorageServiceProvider));
@@ -19,35 +17,37 @@ class AuthNotifier extends StateNotifier<AuthState> {
     _tryRestoreSession();
   }
 
-  /// Rehydrates from secure storage — no network call, since there's no
-  /// silent-refresh flow. If the cached token has already expired, the
-  /// user has to log in again.
   Future<void> _tryRestoreSession() async {
     state = const AuthLoading();
-    final persisted = await _repo.loadPersistedSession();
+    try {
+      final persisted = await _repo.loadPersistedSession();
+      if (!mounted) return;
 
-    if (persisted == null || persisted.tokens.isExpired) {
-      state = const AuthUnauthenticated();
-      return;
+      if (persisted == null || persisted.tokens.isExpired) {
+        state = const AuthUnauthenticated();
+        return;
+      }
+      state = AuthAuthenticated(
+        session: persisted.tokens,
+        user: persisted.user,
+      );
+    } catch (e) {
+      debugPrint('restore session failed: $e');
+      if (mounted) state = const AuthUnauthenticated();
     }
-
-    state = AuthAuthenticated(session: persisted.tokens, user: persisted.user);
   }
 
   Future<void> login({required String email, required String password}) async {
     state = const AuthLoading();
     try {
       final result = await _repo.login(email: email, password: password);
+      if (!mounted) return;
       state = AuthAuthenticated(session: result.tokens, user: result.user);
     } catch (e) {
-      state = AuthError(e.toString());
+      if (mounted) state = AuthError(friendlyError(e));
     }
   }
 
-  /// Registers the account, then immediately logs in — register.php
-  /// doesn't return a token, so a separate login call is required to
-  /// end up authenticated. Now also requires a confirmation password,
-  /// since the API validates password_confirmation server-side.
   Future<void> register({
     required String name,
     required String email,
@@ -63,18 +63,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
         passwordConfirmation: passwordConfirmation,
       );
       final result = await _repo.login(email: email, password: password);
+      if (!mounted) return;
       state = AuthAuthenticated(session: result.tokens, user: result.user);
     } catch (e) {
-      state = AuthError(e.toString());
+      if (mounted) state = AuthError(friendlyError(e));
     }
   }
 
   Future<void> logout() async {
     final current = state;
-    if (current is AuthAuthenticated) {
-      await _repo.logout(current.session.accessToken);
+    try {
+      if (current is AuthAuthenticated) {
+        await _repo.logout(current.session.accessToken);
+      }
+    } catch (e) {
+      debugPrint('logout failed: $e');
     }
-    state = const AuthUnauthenticated();
+    if (mounted) state = const AuthUnauthenticated();
   }
 }
 

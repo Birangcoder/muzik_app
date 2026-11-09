@@ -1,7 +1,7 @@
-import 'package:muzik/shared/models/artist_model_ref.dart';
-import 'package:muzik/shared/models/reference_models.dart';
-
+import '../../../../core/utils/json_utils.dart';
+import '../../../../shared/models/artist_model_ref.dart';
 import '../../../../shared/models/pagination_model.dart';
+import '../../../../shared/models/reference_models.dart';
 
 class MediaModel {
   final String audioUrl;
@@ -16,23 +16,23 @@ class MediaModel {
 
   factory MediaModel.fromJson(Map<String, dynamic> json) {
     return MediaModel(
-      audioUrl: json["audio_url"] as String,
-      coverUrl: json["cover_url"] as String,
-      durationSeconds: json["duration_seconds"] as int,
+      audioUrl: Json.str(json['audio_url']).trim(),
+      coverUrl: Json.str(json['cover_url']).trim(),
+      durationSeconds: Json.intOf(json['duration_seconds']),
     );
   }
 }
 
 class MetadataModel {
   final String language;
-  final DateTime releaseDate;
+  final DateTime? releaseDate;
 
-  MetadataModel({required this.language, required this.releaseDate});
+  MetadataModel({required this.language, this.releaseDate});
 
   factory MetadataModel.fromJson(Map<String, dynamic> json) {
     return MetadataModel(
-      language: json["language"] as String,
-      releaseDate: DateTime.tryParse(json['release_date'] as String)!,
+      language: Json.str(json['language']),
+      releaseDate: Json.dateOrNull(json['release_date']),
     );
   }
 }
@@ -50,11 +50,9 @@ class StatisticsModel {
 
   factory StatisticsModel.fromJson(Map<String, dynamic> json) {
     return StatisticsModel(
-      playCount: json["play_count"] != null ? json["play_count"] as int : null,
-      likeCount: json["like_count"] != null ? json["like_count"] as int : null,
-      downloadCount: json["download_count"] != null
-          ? json["download_count"] as int
-          : null,
+      playCount: Json.intOrNull(json['play_count']),
+      likeCount: Json.intOrNull(json['like_count']),
+      downloadCount: Json.intOrNull(json['download_count']),
     );
   }
 }
@@ -67,7 +65,7 @@ class SongModel {
   final MediaModel media;
   final MetadataModel metaData;
   final StatisticsModel? statistics;
-  final List<ArtistsModelRef>? artists;
+  final List<ArtistsModelRef> artists;
   final AlbumRef? album;
   final List<GenresRef>? genres;
 
@@ -79,36 +77,46 @@ class SongModel {
     required this.media,
     required this.metaData,
     this.statistics,
-    required this.artists,
+    this.artists = const [],
     this.album,
     this.genres,
   });
 
+  /// "Artist A, Artist B" — empty string when unknown. Never null.
+  String get artistNames => artists.map((a) => a.name).join(', ');
+
+  bool get isPlayable => media.audioUrl.isNotEmpty;
+
+  bool get hasAlbum => album != null && (haveAlbum ?? true);
+
   factory SongModel.fromJson(Map<String, dynamic> json) {
+    final albumJson = Json.mapOrNull(json['album']);
     return SongModel(
-      id: json['id'] as int,
-      title: json['title'] as String,
-      slug: json['slug'] as String,
-      haveAlbum: json['haveAlbum'] as bool,
-      media: MediaModel.fromJson(json['media'] as Map<String, dynamic>),
-      metaData: MetadataModel.fromJson(
-        json['metadata'] as Map<String, dynamic>,
-      ),
-      statistics: json['statistics'] != null
-          ? StatisticsModel.fromJson(json['statistics'] as Map<String, dynamic>)
+      id: Json.requiredInt(json['id'], 'song.id'),
+      title: Json.str(json['title'], fallback: 'Untitled'),
+      slug: Json.str(json['slug']),
+      haveAlbum: Json.boolOrNull(json['haveAlbum'] ?? json['have_album']),
+      media: MediaModel.fromJson(Json.map(json['media'])),
+      metaData: MetadataModel.fromJson(Json.map(json['metadata'])),
+      statistics: Json.mapOrNull(json['statistics']) != null
+          ? StatisticsModel.fromJson(Json.map(json['statistics']))
           : null,
-      artists: (json['artists'] as List)
-          .map((a) => ArtistsModelRef.fromJson(a as Map<String, dynamic>))
-          .toList(),
-      album: json['album'] != null
-          ? AlbumRef.fromJson(json['album'] as Map<String, dynamic>)
+      artists: Json.list(json['artists'], ArtistsModelRef.fromJson),
+      album: (albumJson != null && albumJson['id'] != null)
+          ? _tryAlbum(albumJson)
           : null,
-      genres: json['genres'] != null
-          ? (json['genres'] as List)
-                .map((g) => GenresRef.fromJson(g as Map<String, dynamic>))
-                .toList()
+      genres: json['genres'] is List
+          ? Json.list(json['genres'], GenresRef.fromJson)
           : null,
     );
+  }
+
+  static AlbumRef? _tryAlbum(Map<String, dynamic> j) {
+    try {
+      return AlbumRef.fromJson(j);
+    } catch (_) {
+      return null;
+    }
   }
 }
 
@@ -120,12 +128,8 @@ class SongPageModel {
 
   factory SongPageModel.fromJson(Map<String, dynamic> json) {
     return SongPageModel(
-      tracks: (json['tracks'] as List? ?? [])
-          .map((item) => SongModel.fromJson(item as Map<String, dynamic>))
-          .toList(),
-      pagination: PaginationModel.fromJson(
-        json['pagination'] as Map<String, dynamic>? ?? {},
-      ),
+      tracks: Json.list(json['tracks'], SongModel.fromJson),
+      pagination: PaginationModel.fromJson(Json.map(json['pagination'])),
     );
   }
 }

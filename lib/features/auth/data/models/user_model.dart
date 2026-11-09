@@ -1,3 +1,5 @@
+import '../../../../core/utils/json_utils.dart';
+
 /// Matches the user object returned by /auth/register, /auth/login, and
 /// GET /profile (the latter being the fullest version — register/login
 /// responses may only include a subset, e.g. just id/name/email).
@@ -29,19 +31,15 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      email: json['email'] as String,
-      avatarUrl: json['avatar_url'] as String?,
-      country: json['country'] as String?,
-      birthDate: json['birth_date'] != null
-          ? DateTime.tryParse(json['birth_date'] as String)
-          : null,
-      gender: json['gender'] as String?,
-      bio: json['bio'] as String?,
-      createdAt: json['created_at'] != null
-          ? DateTime.tryParse(json['created_at'] as String)
-          : null,
+      id: Json.requiredInt(json['id'], 'user.id'),
+      name: Json.str(json['name'], fallback: 'User'),
+      email: Json.str(json['email']),
+      avatarUrl: Json.strOrNull(json['avatar_url']),
+      country: Json.strOrNull(json['country']),
+      birthDate: Json.dateOrNull(json['birth_date']),
+      gender: Json.strOrNull(json['gender']),
+      bio: Json.strOrNull(json['bio']),
+      createdAt: Json.dateOrNull(json['created_at']),
     );
   }
 

@@ -1,4 +1,4 @@
-class RouteName{
+class RouteName {
   static const home = 'home';
   static const search = 'search';
   static const library = 'library';
@@ -10,4 +10,5 @@ class RouteName{
   static const song = 'song';
   static const trackList = 'trackList';
   static const albumList = 'albumList';
+  static const album = 'album';
 }

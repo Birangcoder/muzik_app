@@ -16,7 +16,7 @@ class TrendingCard extends StatelessWidget {
     required this.title,
     required this.artist,
     required this.gradient,
-    this.license = "CC BY-NC-SA",
+    this.license = 'CC BY-NC-SA',
     this.onTap,
   });
 
@@ -46,7 +46,7 @@ class TrendingCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.chip),
               ),
               child: Text(
-                "#$rank TRENDING",
+                '#$rank TRENDING',
                 style: textTheme.labelSmall?.copyWith(
                   color: Colors.black,
                   fontWeight: FontWeight.w700,
@@ -63,11 +63,11 @@ class TrendingCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              "$artist · $license",
+              '$artist · $license',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: textTheme.labelMedium?.copyWith(
-                color: Colors.white.withOpacity(0.85),
+                color: Colors.white.withValues(alpha: 0.85),
               ),
             ),
           ],

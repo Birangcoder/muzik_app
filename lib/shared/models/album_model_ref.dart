@@ -1,3 +1,4 @@
+import '../../core/utils/json_utils.dart';
 import 'artist_model_ref.dart';
 
 class AlbumModelRef {
@@ -19,25 +20,21 @@ class AlbumModelRef {
 
   factory AlbumModelRef.fromJson(Map<String, dynamic> json) {
     return AlbumModelRef(
-      id: json['id'] as int,
-      title: json['title'] as String,
-      slug: json['slug'] as String,
-      coverUrl: json['cover_url'] as String,
-      metadata: MetadataModel.fromJson(
-        json['metadata'] as Map<String, dynamic>,
-      ),
-      artist: json['artists'] != null
-          ? (json['artists'] as List)
-                .map((a) => ArtistsModelRef.fromJson(a as Map<String, dynamic>))
-                .toList()
-          : null,
+      id: Json.requiredInt(json['id'], 'album.id'),
+      title: Json.str(json['title'], fallback: 'Untitled album'),
+      slug: Json.str(json['slug']),
+      coverUrl: Json.str(json['cover_url']),
+      metadata: MetadataModel.fromJson(Json.map(json['metadata'])),
+      artist: Json.list(json['artists'], ArtistsModelRef.fromJson),
     );
   }
+
+  String get artistNames => (artist ?? const []).map((a) => a.name).join(', ');
 }
 
 class MetadataModel {
   final String? description;
-  final DateTime releaseDate;
+  final DateTime? releaseDate;
   final String albumType;
   final String? label;
   final String? copyright;
@@ -45,7 +42,7 @@ class MetadataModel {
 
   MetadataModel({
     this.description,
-    required this.releaseDate,
+    this.releaseDate,
     required this.albumType,
     this.label,
     this.copyright,
@@ -54,14 +51,12 @@ class MetadataModel {
 
   factory MetadataModel.fromJson(Map<String, dynamic> json) {
     return MetadataModel(
-      description: json['description'] != null
-          ? json['description'] as String
-          : null,
-      releaseDate: DateTime.tryParse(json['release_date'] as String)!,
-      albumType: json['album_type'] as String,
-      label: json['label'] != null ? json['label'] as String : null,
-      copyright: json['copyright'] != null ? json['copyright'] as String : null,
-      totalTracks: json['total_tracks'] as int,
+      description: Json.strOrNull(json['description']),
+      releaseDate: Json.dateOrNull(json['release_date']),
+      albumType: Json.str(json['album_type']),
+      label: Json.strOrNull(json['label']),
+      copyright: Json.strOrNull(json['copyright']),
+      totalTracks: Json.intOf(json['total_tracks']),
     );
   }
 }

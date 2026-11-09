@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../core/router/route_names.dart';
 import '../core/router/go_router_refresh_notifier.dart';
+import '../core/router/route_names.dart';
+import '../core/widgets/app_error_view.dart';
+import '../features/albums/presentation/pages/album_details.dart';
 import '../features/albums/presentation/pages/albums_list.dart';
 import '../features/auth/data/models/auth_state.dart';
 import '../features/auth/presentation/pages/login_screen.dart';
@@ -14,24 +16,15 @@ import '../features/library/presentation/pages/library_screen.dart';
 import '../features/main_screen/presentation/pages/main_screen.dart';
 import '../features/profile/presentation/pages/profile_screen.dart';
 import '../features/search/presentation/pages/search_screen.dart';
+import '../features/song/data/models/track_state.dart';
 import '../features/song/presentation/pages/song_page.dart';
 import '../features/song/presentation/pages/track_list_page.dart';
+import '../features/song/presentation/providers/track_notifier.dart';
 import '../features/splash/presentation/pages/splash_screen.dart';
 
-// A single stable key for GoRouter's root Navigator. Also useful if any
-// widget ever needs the root navigator context directly.
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 final routerProvider = Provider<GoRouter>((ref) {
-  // IMPORTANT: read, not watch. GoRouter's own `refreshListenable` already
-  // listens to this notifier internally and re-runs `redirect` whenever it
-  // fires — Riverpod does not need to rebuild (and must not rebuild) the
-  // whole GoRouter instance on every auth change. Watching it here causes
-  // GoRouter to be torn down and reconstructed mid-app-lifetime, which
-  // creates a second internal root Navigator with a colliding default key
-  // while the old one is still disposing — the source of the
-  // "GlobalKey was used multiple times", "_debugLocked", and
-  // "duplicated page keys" crashes.
   final refreshNotifier = ref.read(goRouterRefreshProvider);
 
   return GoRouter(
@@ -52,22 +45,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         AuthUnauthenticated() || AuthError() => isAuthPage ? null : '/login',
       };
     },
+    errorBuilder: (_, _) => const RouteErrorPage(),
     routes: [
       GoRoute(
         path: '/login',
         name: RouteName.login,
-        builder: (_, _) => LoginScreen(),
+        builder: (_, _) => const LoginScreen(),
       ),
       GoRoute(
         path: '/register',
         name: RouteName.register,
-        builder: (_, _) => SignupScreen(),
+        builder: (_, _) => const SignupScreen(),
       ),
       GoRoute(
         path: '/songs',
         name: RouteName.songs,
         builder: (_, _) => const HomeScreen(),
-        // song route removed from here — moved into the ShellRoute below
       ),
       GoRoute(
         path: '/albums',
@@ -75,13 +68,28 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const AlbumsList(),
       ),
       GoRoute(
+        path: '/albums/:id',
+        name: RouteName.album,
+        builder: (context, state) {
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null) return const RouteErrorPage();
+          return AlbumScreen(id: id);
+        },
+      ),
+      GoRoute(
         path: '/trackList',
         name: RouteName.trackList,
         builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>;
+          final extra = state.extra;
+          final map = extra is Map ? extra : const {};
+          final provider = map['provider'];
+          if (provider is! NotifierProvider<TrackNotifier, TrackState>) {
+            return const RouteErrorPage();
+          }
+          final title = map['title'];
           return TrackListPage(
-            provider: extra?['provider'],
-            title: extra?['title'] ?? 'Track List',
+            provider: provider,
+            title: title is String && title.isNotEmpty ? title : 'Track List',
           );
         },
       ),
@@ -89,14 +97,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/song/:id',
         name: RouteName.song,
         builder: (context, state) {
-          final int id = int.parse(state.pathParameters['id']!);
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null) return const RouteErrorPage();
           return SongPage(songId: id);
         },
       ),
       GoRoute(
         path: '/splash',
         name: RouteName.splash,
-        builder: (_, _) => SplashScreen(),
+        builder: (_, _) => const SplashScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) {
@@ -147,3 +156,21 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+/// Shown for unknown URLs / bad route arguments instead of crashing.
+class RouteErrorPage extends StatelessWidget {
+  const RouteErrorPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: AppErrorView(
+        title: 'Page not found',
+        message: "We couldn't open that page.",
+        retryLabel: 'Go home',
+        onRetry: () => context.go('/'),
+      ),
+    );
+  }
+}

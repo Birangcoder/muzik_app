@@ -1,9 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import '../../../../core/constants/api_config.dart';
 import '../../../../core/error/api_exception.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../core/utils/json_utils.dart';
 import '../../../auth/data/repositories/secure_storage_service.dart';
 import '../models/song_model.dart';
 
@@ -12,217 +13,154 @@ class SongRepository {
 
   SongRepository(this._storage);
 
+  Future<Map<String, String>> _headers({bool json = false}) async {
+    String? token;
+    try {
+      token = (await _storage.readTokens())?.accessToken;
+    } catch (_) {}
+    return {
+      'Accept': 'application/json',
+      if (json) 'Content-Type': 'application/json',
+      if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  Uri _paged(String base, int page, int limit) => Uri.parse(base).replace(
+    queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+  );
+
   Future<List<SongModel>> fetchAllSong() async {
-    final response = await http.get(Uri.parse(ApiConfig.songs));
-
-    final data = unwrapData(response) as Map<String, dynamic>;
-    final list = data['tracks'] as List;
-
-    return list.map((e) => SongModel.fromJson(e)).toList();
+    final response = await ApiClient.get(Uri.parse(ApiConfig.songs));
+    final data = unwrapMap(response);
+    return Json.list(data['tracks'], SongModel.fromJson);
   }
 
   Future<SongPageModel> fetchTrendingSong({
     int page = 1,
     int limit = 20,
   }) async {
-    final uri = Uri.parse(ApiConfig.trending).replace(
-      queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+    final response = await ApiClient.get(
+      _paged(ApiConfig.trending, page, limit),
     );
-
-    final response = await http.get(uri);
-
-    final data = unwrapData(response) as Map<String, dynamic>;
-
-    return SongPageModel.fromJson(data);
+    return SongPageModel.fromJson(unwrapMap(response));
   }
 
   Future<SongPageModel> fetchLatestSong({int page = 1, int limit = 20}) async {
-    final uri = Uri.parse(ApiConfig.latestSong).replace(
-      queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+    final response = await ApiClient.get(
+      _paged(ApiConfig.latestSong, page, limit),
     );
-
-    final response = await http.get(uri);
-
-    final data = unwrapData(response) as Map<String, dynamic>;
-
-    return SongPageModel.fromJson(data);
+    return SongPageModel.fromJson(unwrapMap(response));
   }
 
   Future<SongPageModel> fetchRecommendedSong({
     int page = 1,
     int limit = 20,
   }) async {
-    final session = await _storage.readTokens();
-    final uri = Uri.parse(ApiConfig.recommendedSong).replace(
-      queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+    final response = await ApiClient.get(
+      _paged(ApiConfig.recommendedSong, page, limit),
+      headers: await _headers(json: true),
     );
-
-    final response = await http.get(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        if (session != null && session.accessToken.isNotEmpty)
-          'Authorization': 'Bearer ${session.accessToken}',
-      },
-    );
-
-    final data = unwrapData(response) as Map<String, dynamic>;
-
-    return SongPageModel.fromJson(data);
+    return SongPageModel.fromJson(unwrapMap(response));
   }
 
   Future<SongPageModel> fetchHistory({int page = 1, int limit = 20}) async {
-    final session = await _storage.readTokens();
-    final uri = Uri.parse(ApiConfig.history).replace(
-      queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+    final response = await ApiClient.get(
+      _paged(ApiConfig.history, page, limit),
+      headers: await _headers(json: true),
     );
-
-    final response = await http.get(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        if (session != null && session.accessToken.isNotEmpty)
-          'Authorization': 'Bearer ${session.accessToken}',
-      },
-    );
-
-    final data = unwrapData(response) as Map<String, dynamic>;
-
-    return SongPageModel.fromJson(data);
+    return SongPageModel.fromJson(unwrapMap(response));
   }
 
   Future<SongModel> fetchSongById(int id) async {
-    final response = await http.get(Uri.parse(ApiConfig.song(id)));
-
-    final data = unwrapData(response) as Map<String, dynamic>;
-    return SongModel.fromJson(data);
+    final response = await ApiClient.get(Uri.parse(ApiConfig.song(id)));
+    final data = unwrapMap(response);
+    // Some APIs wrap the song as {"track": {...}} / {"song": {...}}.
+    final inner = Json.mapOrNull(data['track'] ?? data['song']) ?? data;
+    return SongModel.fromJson(inner);
   }
 
   Future<SongPageModel> fetchFavoriteSong({
     int page = 1,
     int limit = 20,
   }) async {
-    final session = await _storage.readTokens();
-    final uri = Uri.parse(ApiConfig.songFavorite).replace(
-      queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+    final response = await ApiClient.get(
+      _paged(ApiConfig.songFavorite, page, limit),
+      headers: await _headers(json: true),
     );
-
-    final response = await http.get(
-      uri,
-      headers: {
-        'Content-Type': 'application/json',
-        if (session != null && session.accessToken.isNotEmpty)
-          'Authorization': 'Bearer ${session.accessToken}',
-      },
-    );
-
-    final data = unwrapData(response) as Map<String, dynamic>;
-
-    return SongPageModel.fromJson(data);
+    return SongPageModel.fromJson(unwrapMap(response));
   }
 
+  /// IDs of every favourite song (walks all pages, so favourites beyond the
+  /// first page are still recognised as liked).
   Future<List<int>> fetchUserFavoriteSongIds() async {
-    final session = await _storage.readTokens();
-    final response = await http.get(
-      Uri.parse(ApiConfig.songFavorite),
-      headers: {
-        'Content-Type': 'application/json',
-        if (session != null && session.accessToken.isNotEmpty)
-          'Authorization': 'Bearer ${session.accessToken}',
-      },
-    );
+    final headers = await _headers(json: true);
+    if (!headers.containsKey('Authorization')) return <int>[];
 
-    final data = unwrapData(response) as Map<String, dynamic>;
-    final tracks = data['tracks'] as List<dynamic>;
-    print("favorite: ${tracks.map((song) => song['id'] as int).toList()}");
-    return tracks.map((song) => song['id'] as int).toList();
+    final ids = <int>[];
+    var page = 1;
+    while (page <= 50) {
+      final response = await ApiClient.get(
+        _paged(ApiConfig.songFavorite, page, 100),
+        headers: headers,
+      );
+      final result = SongPageModel.fromJson(unwrapMap(response));
+      ids.addAll(result.tracks.map((s) => s.id));
+      if (!result.pagination.hasNext || result.tracks.isEmpty) break;
+      page++;
+    }
+    return ids;
   }
 
   Future<void> addSongToFavorites(int id) async {
-    final session = await _storage.readTokens();
-    await http.post(
+    final response = await ApiClient.post(
       Uri.parse(ApiConfig.songFavorite),
-      headers: {
-        'Content-Type': 'application/json',
-        if (session != null && session.accessToken.isNotEmpty)
-          'Authorization': 'Bearer ${session.accessToken}',
-      },
+      headers: await _headers(json: true),
       body: jsonEncode({'song_id': id}),
     );
+    unwrapData(response); // throws a friendly ApiException on failure
   }
 
   Future<void> removeSongFromFavorites(int id) async {
-    final session = await _storage.readTokens();
-    await http.delete(
+    final response = await ApiClient.delete(
       Uri.parse(ApiConfig.songRemoveFavorite(id)),
-      headers: {
-        'Content-Type': 'application/json',
-        if (session != null && session.accessToken.isNotEmpty)
-          'Authorization': 'Bearer ${session.accessToken}',
-      },
+      headers: await _headers(json: true),
     );
+    unwrapData(response);
   }
 
-  /// POST /songs/:id/play — the side-effecting call.
-  /// Bumps play_count, adds history, adds view — all handled server-side.
-  // song_repository.dart
-
+  /// POST /songs/:id/play — best effort analytics call; never throws.
   Future<void> recordPlay(int id) async {
-    final sentAt = DateTime.now();
-    debugPrint('[$sentAt] recordPlay STARTING for song $id');
-
-    final session = await _storage.readTokens();
-
-    final response = await http.post(
-      Uri.parse(ApiConfig.songPlay(id)),
-      headers: {
-        'Content-Type': 'application/json',
-        if (session != null && session.accessToken.isNotEmpty)
-          'Authorization': 'Bearer ${session.accessToken}',
-      },
-    );
-
-    final completedAt = DateTime.now();
-    debugPrint(
-      '[$completedAt] recordPlay COMPLETED for song $id (${response.statusCode}) — took ${completedAt.difference(sentAt).inMilliseconds}ms',
-    );
-
-    if (response.statusCode != 200 && response.statusCode != 201) {
-      debugPrint('Failed to record play for song $id (${response.statusCode})');
+    try {
+      final response = await ApiClient.post(
+        Uri.parse(ApiConfig.songPlay(id)),
+        headers: await _headers(json: true),
+      );
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        debugPrint(
+          'Failed to record play for song $id (${response.statusCode})',
+        );
+      }
+    } catch (e) {
+      debugPrint('recordPlay failed: $e');
     }
   }
 
-  /// POST /songs/:id/progress — fired on song end or when leaving the page.
+  /// POST /songs/:id/progress — returns normally only on success so the
+  /// caller can retry later when it fails.
   Future<void> recordProgress(
     int id, {
     required int playDuration,
     required bool completed,
   }) async {
-    final sentAt = DateTime.now();
-    debugPrint(
-      '[$sentAt] recordProgress STARTING: id=$id, playDuration=$playDuration, completed=$completed',
-    );
-
-    final session = await _storage.readTokens();
-
-    final response = await http.post(
+    final response = await ApiClient.post(
       Uri.parse(ApiConfig.songProgress(id)),
-      headers: {
-        'Content-Type': 'application/json',
-        if (session != null && session.accessToken.isNotEmpty)
-          'Authorization': 'Bearer ${session.accessToken}',
-      },
+      headers: await _headers(json: true),
       body: jsonEncode({'play_duration': playDuration, 'completed': completed}),
     );
-
-    final completedAt = DateTime.now();
-    debugPrint(
-      '[$completedAt] recordProgress COMPLETED (${response.statusCode}) — took ${completedAt.difference(sentAt).inMilliseconds}ms: ${response.body}',
-    );
-
     if (response.statusCode != 200 && response.statusCode != 201) {
-      debugPrint(
-        'Failed to record progress for song $id (${response.statusCode})',
+      throw ApiException(
+        'Failed to record progress',
+        statusCode: response.statusCode,
       );
     }
   }

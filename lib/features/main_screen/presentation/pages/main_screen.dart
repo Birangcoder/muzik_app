@@ -51,12 +51,12 @@ class MainScreen extends StatelessWidget {
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.home_outlined),
-            label: "home",
+            label: 'home',
             selectedIcon: Icon(Icons.home_outlined, color: context.colors.blue),
           ),
           NavigationDestination(
             icon: const Icon(Icons.search_outlined),
-            label: "search",
+            label: 'search',
             selectedIcon: Icon(
               Icons.search_outlined,
               color: context.colors.blue,
@@ -64,7 +64,7 @@ class MainScreen extends StatelessWidget {
           ),
           NavigationDestination(
             icon: const Icon(Icons.my_library_music_outlined),
-            label: "library",
+            label: 'library',
             selectedIcon: Icon(
               Icons.my_library_music_outlined,
               color: context.colors.blue,
@@ -72,7 +72,7 @@ class MainScreen extends StatelessWidget {
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline),
-            label: "profile",
+            label: 'profile',
             selectedIcon: Icon(
               Icons.person_outline,
               color: context.colors.blue,

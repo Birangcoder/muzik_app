@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/router/route_names.dart';
-import 'show_song_options.dart';
-import '../../../../shared/widgets/song_list_tile.dart';
 
+import '../../../../core/router/route_names.dart';
 import '../../../../core/utils/responsive.dart';
+import '../../../../shared/widgets/song_list_tile.dart';
 import '../../../song/data/models/song_model.dart';
+import 'show_song_options.dart';
 
 class SongListSection extends StatelessWidget {
   final String title;
@@ -102,7 +102,7 @@ class SongListSection extends StatelessWidget {
                             song: column[i],
                             onTap: () => context.goNamed(
                               RouteName.song,
-                              pathParameters: {"id": column[i].id.toString()},
+                              pathParameters: {'id': column[i].id.toString()},
                             ),
                             onMore: () {
                               showSongOptions(context, column[i]);

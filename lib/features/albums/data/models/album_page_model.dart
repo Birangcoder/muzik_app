@@ -1,3 +1,4 @@
+import '../../../../core/utils/json_utils.dart';
 import '../../../../shared/models/pagination_model.dart';
 import 'album_model.dart';
 
@@ -9,13 +10,11 @@ class AlbumPageModel {
 
   factory AlbumPageModel.fromJson(Map<String, dynamic> json) {
     return AlbumPageModel(
-      albums: (json['albums'] as List? ?? json['data'] as List? ?? [])
-          .map((a) => AlbumModel.fromJson(a as Map<String, dynamic>))
-          .toList(),
-      pagination: PaginationModel.fromJson(
-        json['pagination'] as Map<String, dynamic>,
+      albums: Json.list(
+        json['albums'] is List ? json['albums'] : json['data'],
+        AlbumModel.fromJson,
       ),
+      pagination: PaginationModel.fromJson(Json.map(json['pagination'])),
     );
   }
 }
-

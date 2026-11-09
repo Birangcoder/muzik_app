@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:muzik/core/theme/app_colors.dart';
 
 // import '../../../../core/constants/routeNameConfig.dart';
@@ -40,7 +39,7 @@ class AppSearchBar extends StatelessWidget {
               Icon(Icons.search, color: context.colors.text2),
               const SizedBox(width: 10),
               Text(
-                "Search here...",
+                'Search here...',
                 style: TextStyle(color: context.colors.text, fontSize: 16),
               ),
             ],

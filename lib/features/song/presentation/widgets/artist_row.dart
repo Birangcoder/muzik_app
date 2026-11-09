@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/utils/image_size.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/image_size.dart';
 import '../../../../shared/models/artist_model_ref.dart';
 
 class ArtistRow extends StatelessWidget {
@@ -24,7 +24,7 @@ class ArtistRow extends StatelessWidget {
             ? const NeverScrollableScrollPhysics()
             : const BouncingScrollPhysics(),
         itemCount: artists.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 18),
+        separatorBuilder: (_, _) => const SizedBox(width: 18),
         itemBuilder: (context, i) {
           final artist = artists[i];
 

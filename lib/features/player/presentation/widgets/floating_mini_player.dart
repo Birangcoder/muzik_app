@@ -5,9 +5,9 @@ import 'package:just_audio/just_audio.dart';
 import '../../../../app/routes.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../providers/player_ui_provider.dart';
 import '../../../song/presentation/providers/song_provider.dart';
 import '../providers/audio_player_provider.dart';
+import '../providers/player_ui_provider.dart';
 
 const double _kBarWidth = 250;
 const double _kBarHeight = 60;
@@ -66,10 +66,10 @@ class _MiniPlayerContent extends ConsumerWidget {
     final saved = ref.watch(miniPlayerOffsetProvider);
     final offset =
         saved ??
-            Offset(
-              screenSize.width - _kBarWidth - 16,
-              screenSize.height - _kBarHeight - 140,
-            );
+        Offset(
+          screenSize.width - _kBarWidth - 16,
+          screenSize.height - _kBarHeight - 140,
+        );
 
     // Defensive bounds — never let a clamp's min exceed its max, even on
     // unusually small screens.
@@ -110,9 +110,9 @@ class _MiniPlayerContent extends ConsumerWidget {
           ref
               .read(routerProvider)
               .pushNamed(
-            RouteName.song,
-            pathParameters: {'id': songId.toString()},
-          );
+                RouteName.song,
+                pathParameters: {'id': songId.toString()},
+              );
         },
         child: Material(
           color: Colors.transparent,
@@ -126,8 +126,8 @@ class _MiniPlayerContent extends ConsumerWidget {
               border: Border.all(color: colors.stroke),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(
-                    Theme.of(context).brightness == Brightness.light
+                  color: Colors.black.withValues(
+                    alpha: Theme.of(context).brightness == Brightness.light
                         ? 0.12
                         : 0.45,
                   ),
@@ -141,13 +141,15 @@ class _MiniPlayerContent extends ConsumerWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(_kBarHeight / 2 - 6),
                   child: songAsync.maybeWhen(
-                    data: (song) => Image.network(
-                      song.media.coverUrl,
-                      width: 42,
-                      height: 42,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _fallbackArt(colors),
-                    ),
+                    data: (song) => song.media.coverUrl.isEmpty
+                        ? _fallbackArt(colors)
+                        : Image.network(
+                            song.media.coverUrl,
+                            width: 42,
+                            height: 42,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => _fallbackArt(colors),
+                          ),
                     orElse: () => _fallbackArt(colors),
                   ),
                 ),

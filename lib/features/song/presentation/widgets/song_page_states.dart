@@ -18,8 +18,9 @@ class SongPageLoading extends StatelessWidget {
 
 class SongPageError extends StatelessWidget {
   final String message;
+  final VoidCallback? onRetry;
 
-  const SongPageError({super.key, required this.message});
+  const SongPageError({super.key, required this.message, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +50,13 @@ class SongPageError extends StatelessWidget {
                   context,
                 ).textTheme.labelSmall?.copyWith(color: colors.text3),
               ),
+              if (onRetry != null) ...[
+                const SizedBox(height: 16),
+                FilledButton.tonal(
+                  onPressed: onRetry,
+                  child: const Text('Retry'),
+                ),
+              ],
             ],
           ),
         ),

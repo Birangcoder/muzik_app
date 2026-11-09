@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/error/error_message.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../player/presentation/providers/audio_player_provider.dart';
 import '../../../player/presentation/providers/player_ui_provider.dart';
@@ -20,10 +21,14 @@ class SongPage extends ConsumerStatefulWidget {
 
 class _SongPageState extends ConsumerState<SongPage> {
   bool _isExiting = false;
+  bool _loadRequested = false;
+  late final AudioController _audio;
 
   @override
   void initState() {
     super.initState();
+    // Captured now so dispose() never touches `ref` after the element is gone.
+    _audio = ref.read(audioControllerProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(isPlayerMinimizedProvider.notifier).state = false;
     });
@@ -40,7 +45,7 @@ class _SongPageState extends ConsumerState<SongPage> {
   Future<void> _handleExit() async {
     if (_isExiting) return;
     _isExiting = true;
-    await ref.read(audioControllerProvider.notifier).stopAndReportProgress();
+    await _audio.stopAndReportProgress();
     if (mounted) _popOrGoHome();
   }
 
@@ -54,7 +59,7 @@ class _SongPageState extends ConsumerState<SongPage> {
   @override
   void dispose() {
     if (!_isExiting) {
-      ref.read(audioControllerProvider.notifier).stopAndReportProgress();
+      _audio.stopAndReportProgress();
     }
     super.dispose();
   }
@@ -102,11 +107,18 @@ class _SongPageState extends ConsumerState<SongPage> {
         ),
         body: songAsync.when(
           loading: () => const SongPageLoading(),
-          error: (err, _) => SongPageError(message: '$err'),
+          error: (err, _) => SongPageError(
+            message: friendlyError(err),
+            onRetry: () => ref.invalidate(songProvider(widget.songId)),
+          ),
           data: (song) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ref.read(audioControllerProvider.notifier).loadAndPlay(song);
-            });
+            // Start playback exactly once per page, not on every rebuild.
+            if (!_loadRequested) {
+              _loadRequested = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _audio.loadAndPlay(song);
+              });
+            }
             return NowPlayingBody(song: song);
           },
         ),

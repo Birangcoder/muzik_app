@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../../../../core/error/api_exception.dart';
+import '../../../../core/error/error_message.dart';
 import '../../../song/data/models/song_model.dart';
 import '../../../song/data/repositories/song_repository.dart';
 import '../../../song/presentation/providers/song_provider.dart';
@@ -11,13 +13,13 @@ import '../../../song/presentation/providers/song_provider.dart';
 /// One shared AudioPlayer instance for the whole app.
 final audioPlayerProvider = Provider<AudioPlayer>((ref) {
   final player = AudioPlayer();
-  ref.onDispose(player.dispose); // cleaned up automatically
+  ref.onDispose(player.dispose);
   return player;
 });
 
-/// Controls loading/playing songs, and tracks which song is currently loaded
-/// so we don't reload the same song on every rebuild.
-// audio_player_provider.dart
+/// Last playback problem as a user-friendly message (null = none).
+/// MyApp listens to this and shows a SnackBar, then clears it.
+final playbackErrorProvider = StateProvider<String?>((ref) => null);
 
 class AudioController extends StateNotifier<int?> {
   final AudioPlayer _player;
@@ -25,106 +27,198 @@ class AudioController extends StateNotifier<int?> {
   final Ref _ref;
 
   StreamSubscription<PlayerState>? _completionSub;
+  StreamSubscription<PlaybackEvent>? _errorSub;
   bool _progressReported = false;
   bool _isReporting = false;
-  Future<void>? _recordPlayFuture; // NEW: track the in-flight /play call
+  Future<void>? _recordPlayFuture;
 
-  AudioController(this._player, this._api, this._ref) : super(null);
+  int _loadToken = 0; // invalidates stale/concurrent loads
+  int? _loadingSongId;
+  SongModel? _lastRequested;
 
-  Future<void> loadAndPlay(SongModel song) async {
-    if (state == song.id) return;
-    await _reportIfNeeded(completed: false);
+  AudioController(this._player, this._api, this._ref) : super(null) {
+    // Errors that happen DURING playback (network drop, bad stream…).
+    _errorSub = _player.playbackEventStream.listen(
+      (_) {},
+      onError: (Object e, StackTrace st) {
+        debugPrint('Playback error: $e');
+        _reportError(_messageFor(e));
+      },
+    );
+  }
+
+  void _reportError(String message) {
+    if (!mounted) return;
     try {
-      await _player.setUrl(song.media.audioUrl);
+      _ref.read(playbackErrorProvider.notifier).state = message;
+    } catch (_) {}
+  }
+
+  String _messageFor(Object e) {
+    if (e is AppException) return e.message;
+    if (e is TimeoutException) {
+      return 'This song is taking too long to load. Please try again.';
+    }
+    if (e is PlayerException || e is PlayerInterruptedException) {
+      return "This song can't be played right now.";
+    }
+    return friendlyError(e);
+  }
+
+  /// Loads and starts [song]. Never throws — failures are reported through
+  /// [playbackErrorProvider] and `false` is returned.
+  Future<bool> loadAndPlay(SongModel song) async {
+    _lastRequested = song;
+    if (!mounted) return false;
+    if (state == song.id) return true;
+    if (_loadingSongId == song.id) return true; // already loading this one
+
+    if (!song.isPlayable) {
+      _reportError('This song has no audio available.');
+      return false;
+    }
+
+    final token = ++_loadToken;
+    _loadingSongId = song.id;
+
+    try {
+      await _reportIfNeeded(completed: false);
+
+      await _player
+          .setUrl(song.media.audioUrl)
+          .timeout(
+            const Duration(seconds: 45),
+            onTimeout: () => throw TimeoutException('setUrl timed out'),
+          );
+
+      if (token != _loadToken || !mounted) return false; // superseded
+
       state = song.id;
       _progressReported = false;
 
-      // DO NOT await this — just_audio's play() future doesn't complete
-      // until playback pauses/stops/finishes, not when it starts.
-      unawaited(_player.play());
+      unawaited(_safePlay());
 
-      final sentAt = DateTime.now();
-      debugPrint(
-        '[$sentAt] calling recordPlay immediately after play() is triggered',
-      );
-
-      _recordPlayFuture = _api.recordPlay(song.id).catchError((e) {
+      _recordPlayFuture = _api.recordPlay(song.id).catchError((Object e) {
         debugPrint('recordPlay failed: $e');
       });
 
-      _completionSub?.cancel();
+      await _completionSub?.cancel();
       _completionSub = _player.playerStateStream.listen((playerState) {
         if (playerState.processingState == ProcessingState.completed) {
           _reportIfNeeded(completed: true);
         }
-      });
+      }, onError: (Object e) => debugPrint('playerStateStream error: $e'));
+      return true;
     } catch (e) {
-      state = null;
-      rethrow;
+      debugPrint('loadAndPlay failed: $e');
+      if (token == _loadToken && mounted) {
+        state = null;
+        _reportError(_messageFor(e));
+      }
+      return false;
+    } finally {
+      if (token == _loadToken) _loadingSongId = null;
+    }
+  }
+
+  Future<void> _safePlay() async {
+    try {
+      await _player.play();
+    } catch (e) {
+      debugPrint('play() failed: $e');
+      _reportError(_messageFor(e));
     }
   }
 
   Future<void> stopAndReportProgress() async {
-    final actuallyCompleted =
-        _player.processingState == ProcessingState.completed;
-    await _reportIfNeeded(completed: actuallyCompleted);
-    await _completionSub?.cancel();
-    _completionSub = null;
-    await _player.stop();
-    state = null;
+    _loadToken++; // cancel any in-flight load
+    _loadingSongId = null;
+    try {
+      final actuallyCompleted =
+          _player.processingState == ProcessingState.completed;
+      await _reportIfNeeded(completed: actuallyCompleted);
+    } catch (e) {
+      debugPrint('stopAndReportProgress report failed: $e');
+    }
+    try {
+      await _completionSub?.cancel();
+      _completionSub = null;
+      await _player.stop();
+    } catch (e) {
+      debugPrint('stop failed: $e');
+    }
+    if (mounted) state = null;
   }
 
   Future<void> _reportIfNeeded({required bool completed}) async {
-    if (state == null || _progressReported || _isReporting) return;
+    final songId = state;
+    if (songId == null || _progressReported || _isReporting) return;
 
     _isReporting = true;
-
-    // CRITICAL: wait for the /play request to actually finish
-    // before ever sending /progress, so the server always
-    // processes them in the correct order.
-    if (_recordPlayFuture != null) {
-      debugPrint('_reportIfNeeded: waiting for recordPlay to finish first...');
-      await _recordPlayFuture;
-      debugPrint('_reportIfNeeded: recordPlay finished, proceeding');
-    }
-
-    final rawPosition = _player.position;
-    final totalDuration = _player.duration;
-    final clampedPosition =
-        (totalDuration != null && rawPosition > totalDuration)
-        ? totalDuration
-        : rawPosition;
-    final playDuration = clampedPosition.inSeconds;
-
     try {
+      // /play must finish before /progress so the server sees them in order.
+      if (_recordPlayFuture != null) await _recordPlayFuture;
+
+      final rawPosition = _player.position;
+      final totalDuration = _player.duration;
+      final clamped = (totalDuration != null && rawPosition > totalDuration)
+          ? totalDuration
+          : rawPosition;
+
       await _api.recordProgress(
-        state!,
-        playDuration: playDuration,
+        songId,
+        playDuration: clamped.inSeconds,
         completed: completed,
       );
       _progressReported = true;
-      debugPrint('_reportIfNeeded: success, marked as reported');
     } catch (e) {
-      debugPrint('_reportIfNeeded: FAILED, will allow retry later: $e');
+      debugPrint('_reportIfNeeded failed, will retry later: $e');
     } finally {
       _isReporting = false;
     }
   }
 
   Future<void> togglePlayPause() async {
-    if (_player.playing) {
-      await _player.pause();
-    } else {
-      await _player.play();
+    try {
+      // Nothing loaded (e.g. the first load failed) → retry the last song.
+      if (state == null) {
+        final last = _lastRequested;
+        if (last != null) await loadAndPlay(last);
+        return;
+      }
+      if (_player.playing) {
+        await _player.pause();
+      } else {
+        await _player.play();
+      }
+    } catch (e) {
+      _reportError(_messageFor(e));
     }
   }
 
-  Future<void> seek(Duration position) => _player.seek(position);
+  Future<void> seek(Duration position) async {
+    try {
+      await _player.seek(position);
+    } catch (e) {
+      debugPrint('seek failed: $e');
+    }
+  }
 
   Future<void> replay() async {
-    _progressReported = false;
-    await _player.seek(Duration.zero);
-    await _player.play();
+    try {
+      _progressReported = false;
+      await _player.seek(Duration.zero);
+      await _player.play();
+    } catch (e) {
+      _reportError(_messageFor(e));
+    }
+  }
+
+  @override
+  void dispose() {
+    _completionSub?.cancel();
+    _errorSub?.cancel();
+    super.dispose();
   }
 }
 

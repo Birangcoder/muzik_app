@@ -1,12 +1,36 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'features/player/presentation/widgets/floating_mini_player.dart';
 
 import 'app/routes.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/app_error_view.dart';
+import 'features/player/presentation/providers/audio_player_provider.dart';
+import 'features/player/presentation/widgets/floating_mini_player.dart';
+
+final scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 void main() {
-  runApp(ProviderScope(child: const MyApp()));
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Framework errors (build/layout/paint): log, never crash the app.
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+  };
+
+  // Uncaught async errors: log and swallow instead of killing the app.
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('Uncaught error: $error\n$stack');
+    return true;
+  };
+
+  // A widget that throws while building shows a small message, not a
+  // red/grey error screen with technical text.
+  ErrorWidget.builder = (details) => const AppErrorWidget();
+
+  runApp(
+    ProviderScope(retry: (retryCount, error) => null, child: const MyApp()),
+  );
 }
 
 class MyApp extends ConsumerWidget {
@@ -15,27 +39,29 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+
+    // Show playback problems as a friendly SnackBar on any screen.
+    ref.listen<String?>(playbackErrorProvider, (_, message) {
+      if (message == null) return;
+      scaffoldMessengerKey.currentState
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+      ref.read(playbackErrorProvider.notifier).state = null;
+    });
+
     return MaterialApp.router(
       title: 'muzik',
-      // debugShowCheckedModeBanner: false,
-      theme: AppTheme.light,       // used when the phone is in light mode
-      darkTheme: AppTheme.dark,    // used when the phone is in dark mode
-      themeMode: ThemeMode.system, // <- this line is the whole trick:
+      scaffoldMessengerKey: scaffoldMessengerKey,
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       routerConfig: router,
       builder: (context, child) {
-        // `child` already contains go_router's Navigator + its own Overlay.
-        // Our own Overlay here is only so FloatingMiniPlayer's IconButton
-        // tooltips (which need an Overlay ancestor) work correctly, since
-        // FloatingMiniPlayer sits OUTSIDE / above that inner Navigator.
         return Overlay(
           initialEntries: [
             OverlayEntry(
-              builder: (context) => Stack(
-                children: [
-                  if (child != null) child,
-                  const FloatingMiniPlayer(),
-                ],
-              ),
+              builder: (context) =>
+                  Stack(children: [?child, const FloatingMiniPlayer()]),
             ),
           ],
         );

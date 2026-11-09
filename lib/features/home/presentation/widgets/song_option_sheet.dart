@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../core/error/error_message.dart';
+import '../../../../core/router/route_names.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../player/presentation/providers/audio_player_provider.dart';
 import '../../../player/presentation/providers/player_ui_provider.dart';
@@ -17,28 +20,31 @@ class SongOptionsSheet extends ConsumerStatefulWidget {
 }
 
 class SongOptionSheetState extends ConsumerState<SongOptionsSheet> {
+  bool _isLoading = false;
+  bool _isExiting = false;
+
+  Future<void> _handleMinimize() async {
+    if (_isExiting) return;
+    _isExiting = true;
+    final audio = ref.read(audioControllerProvider.notifier);
+    ref.read(isPlayerMinimizedProvider.notifier).state = true;
+    Navigator.pop(context);
+    await audio.loadAndPlay(widget.song);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    bool _isLoading = false;
-    bool _isExiting = false;
-    void _handleMinimize() {
-      if (_isExiting) return;
-      _isExiting = true;
-      ref.read(audioControllerProvider.notifier).loadAndPlay(widget.song);
-      ref.read(isPlayerMinimizedProvider.notifier).state = true;
-      Navigator.pop(context);
-    }
 
     final favoritesAsync = ref.watch(userFavoritesProvider);
 
     final isLiked = favoritesAsync.when(
       data: (ids) => ids.contains(widget.song.id),
       loading: () => false,
-      error: (_, __) => false,
+      error: (_, _) => false,
     );
 
-    Future<void> _toggleLike() async {
+    Future<void> toggleLike() async {
       if (_isLoading) return;
 
       final favoriteIds = ref.read(userFavoritesProvider).value ?? [];
@@ -49,23 +55,28 @@ class SongOptionSheetState extends ConsumerState<SongOptionsSheet> {
 
       try {
         final repo = ref.read(songApiServiceProvider);
+
         if (willBeLiked) {
           await repo.addSongToFavorites(widget.song.id);
         } else {
           await repo.removeSongFromFavorites(widget.song.id);
         }
 
+        if (!context.mounted) return;
+
         ref.invalidate(userFavoritesProvider);
+        Navigator.of(context).pop();
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Failed: $e')));
-        }
+        if (!context.mounted) return;
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(friendlyError(e))));
       } finally {
-        if (mounted) setState(() => _isLoading = false);
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
       }
-      Navigator.pop(context);
     }
 
     final bool buttonDisabled = favoritesAsync.isLoading || _isLoading;
@@ -102,7 +113,7 @@ class SongOptionSheetState extends ConsumerState<SongOptionsSheet> {
               title: const Text('Add to favourites'),
               onTap: () {
                 if (!buttonDisabled) {
-                  _toggleLike();
+                  toggleLike();
                 }
               },
             ),
@@ -134,15 +145,21 @@ class SongOptionSheetState extends ConsumerState<SongOptionsSheet> {
               },
             ),
 
-            if (widget.song.haveAlbum!)
-            ListTile(
-              leading: const Icon(Icons.album_outlined),
-              title: const Text('Go to album'),
-              onTap: () {
-                Navigator.pop(context);
-                // navigate to album
-              },
-            ),
+            if (widget.song.hasAlbum)
+              ListTile(
+                leading: const Icon(Icons.album_outlined),
+                title: const Text('Go to album'),
+                onTap: () {
+                  final albumId = widget.song.album?.id;
+                  if (albumId == null) return;
+                  final router = GoRouter.of(context);
+                  Navigator.pop(context);
+                  router.pushNamed(
+                    RouteName.album,
+                    pathParameters: {'id': albumId.toString()},
+                  );
+                },
+              ),
 
             ListTile(
               leading: const Icon(Icons.share_outlined),

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/router/route_names.dart';
-import '../../../home/presentation/widgets/show_song_options.dart';
-import '../../../../shared/widgets/song_list_tile.dart';
 
+import '../../../../core/error/error_message.dart';
+import '../../../../core/router/route_names.dart';
+import '../../../../shared/widgets/song_list_tile.dart';
+import '../../../home/presentation/widgets/show_song_options.dart';
 import '../../data/models/song_model.dart';
 
 class PaginatedSongListView extends StatefulWidget {
@@ -73,7 +74,11 @@ class _PaginatedSongListViewState extends State<PaginatedSongListView> {
     }
 
     if (widget.error != null && widget.tracks.isEmpty) {
-      return _ErrorState(onRetry: widget.onRefresh, titile: widget.title);
+      return _ErrorState(
+        onRetry: widget.onRefresh,
+        titile: widget.title,
+        message: friendlyError(widget.error),
+      );
     }
 
     if (widget.tracks.isEmpty) {
@@ -88,6 +93,14 @@ class _PaginatedSongListViewState extends State<PaginatedSongListView> {
         itemCount: widget.tracks.length + 1,
         itemBuilder: (context, index) {
           if (index == widget.tracks.length) {
+            if (widget.error != null && !widget.isLoadingMore) {
+              return Center(
+                child: TextButton(
+                  onPressed: widget.onLoadMore,
+                  child: const Text("Couldn't load more. Tap to retry"),
+                ),
+              );
+            }
             return _Footer(
               isLoadingMore: widget.isLoadingMore,
               hasNext: widget.hasNext,
@@ -100,7 +113,7 @@ class _PaginatedSongListViewState extends State<PaginatedSongListView> {
               song: song,
               onTap: () => context.goNamed(
                 RouteName.song,
-                pathParameters: {"id": song.id.toString()},
+                pathParameters: {'id': song.id.toString()},
               ),
               onMore: () {
                 showSongOptions(context, song);
@@ -208,8 +221,13 @@ class _SongTileSkeleton extends StatelessWidget {
 class _ErrorState extends StatelessWidget {
   final VoidCallback onRetry;
   final String titile;
+  final String message;
 
-  const _ErrorState({required this.onRetry, required this.titile});
+  const _ErrorState({
+    required this.onRetry,
+    required this.titile,
+    required this.message,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -234,7 +252,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              "Check your connection and try again",
+              message,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.outline,
               ),

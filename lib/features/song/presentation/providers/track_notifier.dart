@@ -18,13 +18,14 @@ abstract class TrackNotifier extends Notifier<TrackState> {
     try {
       state = const TrackState(isLoading: true);
       final response = await fetchPage(page: 1, limit: limit);
+      if (!ref.mounted) return;
       state = TrackState(
         tracks: response.tracks,
         page: response.pagination.page,
         hasNext: response.pagination.hasNext,
       );
     } catch (e) {
-      state = TrackState(error: e);
+      if (ref.mounted) state = TrackState(error: e);
     }
   }
 
@@ -36,6 +37,7 @@ abstract class TrackNotifier extends Notifier<TrackState> {
     try {
       final nextPage = state.page + 1;
       final response = await fetchPage(page: nextPage, limit: limit);
+      if (!ref.mounted) return;
       state = state.copyWith(
         tracks: [...state.tracks, ...response.tracks],
         page: response.pagination.page,
@@ -43,7 +45,7 @@ abstract class TrackNotifier extends Notifier<TrackState> {
         isLoadingMore: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoadingMore: false, error: e);
+      if (ref.mounted) state = state.copyWith(isLoadingMore: false, error: e);
     }
   }
 

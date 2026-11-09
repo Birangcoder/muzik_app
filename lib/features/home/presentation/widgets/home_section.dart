@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../widgets/section_header.dart';
 
 import '../../../../core/utils/responsive.dart';
+import '../widgets/section_header.dart';
 
 class HomeSection<T> extends StatelessWidget {
   final String title;

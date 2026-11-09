@@ -1,3 +1,5 @@
+import '../../core/utils/json_utils.dart';
+
 class ArtistsModelRef {
   final int id;
   final String name;
@@ -17,12 +19,12 @@ class ArtistsModelRef {
 
   factory ArtistsModelRef.fromJson(Map<String, dynamic> json) {
     return ArtistsModelRef(
-      id: json["id"] as int,
-      name: json["name"] as String,
-      slug: json["slug"] as String,
-      imageUrl: json["image_url"] != null ? json["image_url"] as String : null,
-      verified: json["verified"] != null ? json["verified"] as bool : null,
-      role: json["role"] as String?
+      id: Json.requiredInt(json['id'], 'artist.id'),
+      name: Json.str(json['name'], fallback: 'Unknown artist'),
+      slug: Json.str(json['slug']),
+      imageUrl: Json.strOrNull(json['image_url']),
+      verified: Json.boolOrNull(json['verified']),
+      role: Json.strOrNull(json['role']),
     );
   }
 }

@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../core/utils/image_size.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/image_size.dart';
 
 class CoverArt extends StatelessWidget {
   final String url;
@@ -31,7 +31,7 @@ class CoverArt extends StatelessWidget {
               border: Border.all(color: colors.stroke),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(isLight ? 0.12 : 0.4),
+                  color: Colors.black.withValues(alpha: isLight ? 0.12 : 0.4),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -39,45 +39,56 @@ class CoverArt extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(18),
-              child: CachedNetworkImage(
-                imageUrl: CloudinaryImage.resize(url, width: imageSize),
-                width: maxSide,
-                height: maxSide,
-                fit: BoxFit.cover,
-
-                // Prevent unnecessarily large decoded images.
-                memCacheWidth: imageSize.toInt(),
-                memCacheHeight: imageSize.toInt(),
-
-                placeholder: (context, url) {
-                  return ColoredBox(
-                    color: colors.surface2,
-                    child: Center(
-                      child: SizedBox(
-                        width: 28,
-                        height: 28,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
+              child: url.trim().isEmpty
+                  ? ColoredBox(
+                      color: colors.surface2,
+                      child: Center(
+                        child: Icon(
+                          Icons.music_note_rounded,
+                          size: 60,
                           color: colors.text3,
                         ),
                       ),
-                    ),
-                  );
-                },
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: CloudinaryImage.resize(url, width: imageSize),
+                      width: maxSide,
+                      height: maxSide,
+                      fit: BoxFit.cover,
 
-                errorWidget: (context, url, error) {
-                  return ColoredBox(
-                    color: colors.surface2,
-                    child: Center(
-                      child: Icon(
-                        Icons.music_note_rounded,
-                        size: 60,
-                        color: colors.text3,
-                      ),
+                      // Prevent unnecessarily large decoded images.
+                      memCacheWidth: imageSize.toInt(),
+                      memCacheHeight: imageSize.toInt(),
+
+                      placeholder: (context, url) {
+                        return ColoredBox(
+                          color: colors.surface2,
+                          child: Center(
+                            child: SizedBox(
+                              width: 28,
+                              height: 28,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colors.text3,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+
+                      errorWidget: (context, url, error) {
+                        return ColoredBox(
+                          color: colors.surface2,
+                          child: Center(
+                            child: Icon(
+                              Icons.music_note_rounded,
+                              size: 60,
+                              color: colors.text3,
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ),
         ),

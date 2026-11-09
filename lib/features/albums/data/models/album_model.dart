@@ -1,3 +1,4 @@
+import '../../../../core/utils/json_utils.dart';
 import '../../../../shared/models/artist_model_ref.dart';
 import '../../../song/data/models/song_model.dart';
 
@@ -7,7 +8,7 @@ class AlbumModel {
   final String slug;
   final String coverUrl;
   final List<ArtistsModelRef>? artists;
-  final MetadataModel? metaData;
+  final AlbumMetadata? metaData;
   final List<SongModel>? songs;
 
   AlbumModel({
@@ -20,35 +21,38 @@ class AlbumModel {
     this.songs,
   });
 
-  factory AlbumModel.fromJson(Map<String, dynamic> json, {List<dynamic>? tracksJson}) {
+  String get artistNames => (artists ?? const []).map((a) => a.name).join(', ');
+
+  factory AlbumModel.fromJson(
+    Map<String, dynamic> json, {
+    List<dynamic>? tracksJson,
+  }) {
+    final rawTracks =
+        tracksJson ?? (json['tracks'] is List ? json['tracks'] : null);
     return AlbumModel(
-      id: json["id"] as int,
-      title: json["title"] as String,
-      slug: json["slug"] as String,
-      coverUrl: json["cover_url"] as String,
-      metaData: json['metadata'] != null
-          ? MetadataModel.fromJson(json['metadata'] as Map<String, dynamic>)
+      id: Json.requiredInt(json['id'], 'album.id'),
+      title: Json.str(json['title'], fallback: 'Untitled album'),
+      slug: Json.str(json['slug']),
+      coverUrl: Json.str(json['cover_url']),
+      metaData: Json.mapOrNull(json['metadata']) != null
+          ? AlbumMetadata.fromJson(Json.map(json['metadata']))
           : null,
-      artists: json['artists'] != null
-          ? (json['artists'] as List)
-                .map((a) => ArtistsModelRef.fromJson(a as Map<String, dynamic>))
-                .toList()
-          : null,
-      songs: (tracksJson ?? json['tracks'] as List?)
-          ?.map((a) => SongModel.fromJson(a as Map<String, dynamic>))
-          .toList(),
+      artists: Json.list(json['artists'], ArtistsModelRef.fromJson),
+      songs: rawTracks == null
+          ? null
+          : Json.list(rawTracks, SongModel.fromJson),
     );
   }
 }
 
-class MetadataModel {
+class AlbumMetadata {
   final String description;
-  final DateTime releaseDate;
+  final DateTime? releaseDate;
   final String albumType;
   final String label;
   final int totalTracks;
 
-  MetadataModel({
+  AlbumMetadata({
     required this.description,
     required this.albumType,
     required this.releaseDate,
@@ -56,13 +60,13 @@ class MetadataModel {
     required this.totalTracks,
   });
 
-  factory MetadataModel.fromJson(Map<String, dynamic> json) {
-    return MetadataModel(
-      description: json["description"] as String,
-      albumType: json["album_type"] as String,
-      label: json["label"] as String,
-      totalTracks: json["total_tracks"] as int,
-      releaseDate: DateTime.tryParse(json['release_date'] as String)!,
+  factory AlbumMetadata.fromJson(Map<String, dynamic> json) {
+    return AlbumMetadata(
+      description: Json.str(json['description']),
+      albumType: Json.str(json['album_type']),
+      label: Json.str(json['label']),
+      totalTracks: Json.intOf(json['total_tracks']),
+      releaseDate: Json.dateOrNull(json['release_date']),
     );
   }
 }

@@ -20,13 +20,14 @@ abstract class AlbumListNotifier extends Notifier<AlbumListState> {
     try {
       state = const AlbumListState(isLoading: true);
       final response = await fetchPage(page: 1, limit: limit);
+      if (!ref.mounted) return;
       state = AlbumListState(
         albums: response.albums,
         page: response.pagination.page,
         hasNext: response.pagination.hasNext,
       );
     } catch (e) {
-      state = AlbumListState(error: e);
+      if (ref.mounted) state = AlbumListState(error: e);
     }
   }
 
@@ -38,6 +39,7 @@ abstract class AlbumListNotifier extends Notifier<AlbumListState> {
     try {
       final nextPage = state.page + 1;
       final response = await fetchPage(page: nextPage, limit: limit);
+      if (!ref.mounted) return;
       state = state.copyWith(
         albums: [...state.albums, ...response.albums],
         page: response.pagination.page,
@@ -45,7 +47,7 @@ abstract class AlbumListNotifier extends Notifier<AlbumListState> {
         isLoadingMore: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoadingMore: false, error: e);
+      if (ref.mounted) state = state.copyWith(isLoadingMore: false, error: e);
     }
   }
 

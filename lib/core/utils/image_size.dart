@@ -1,9 +1,5 @@
 class CloudinaryImage {
-  static String resize(
-      String url, {
-        required double width,
-        double? height,
-      }) {
+  static String resize(String url, {required double width, double? height}) {
     final h = height ?? width;
 
     return url.replaceFirst(

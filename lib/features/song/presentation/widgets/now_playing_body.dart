@@ -21,8 +21,9 @@ class NowPlayingBody extends StatelessWidget {
     final hPad = Responsive.horizontalPadding(context);
 
     final subtitleParts = [
-      if (song.album != null) song.album!.title,
-      song.metaData.language,
+      if (song.album != null && song.album!.title.trim().isNotEmpty)
+        song.album!.title,
+      if (song.metaData.language.trim().isNotEmpty) song.metaData.language,
     ];
 
     return Container(
@@ -30,7 +31,9 @@ class NowPlayingBody extends StatelessWidget {
       child: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: Responsive.contentMaxWidth),
+            constraints: const BoxConstraints(
+              maxWidth: Responsive.contentMaxWidth,
+            ),
             child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(hPad, 12, hPad, 40),
               child: Column(
@@ -38,7 +41,10 @@ class NowPlayingBody extends StatelessWidget {
                   const SizedBox(height: 8),
                   CoverArt(url: song.media.coverUrl),
                   const SizedBox(height: 24),
-                  LikeAndPlayRow(likeCount: song.statistics?.likeCount, songId: song.id),
+                  LikeAndPlayRow(
+                    likeCount: song.statistics?.likeCount,
+                    songId: song.id,
+                  ),
                   const SizedBox(height: 28),
                   Text(
                     song.title,
@@ -48,23 +54,26 @@ class NowPlayingBody extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    subtitleParts.join(' • '),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.labelMedium?.copyWith(color: colors.text2),
-                  ),
+                  if (subtitleParts.isNotEmpty)
+                    Text(
+                      subtitleParts.join(' • '),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelMedium?.copyWith(color: colors.text2),
+                    ),
                   const SizedBox(height: 28),
                   SeekBar(
                     fallbackDuration: Duration(
-                      seconds: song.media.durationSeconds,
+                      seconds: song.media.durationSeconds < 0
+                          ? 0
+                          : song.media.durationSeconds,
                     ),
                   ),
                   const SizedBox(height: 18),
-                  ArtistRow(artists: song.artists!),
+                  if (song.artists.isNotEmpty) ArtistRow(artists: song.artists),
                   if (song.genres != null && song.genres!.isNotEmpty) ...[
                     const SizedBox(height: 18),
                     GenreChips(genres: song.genres!),

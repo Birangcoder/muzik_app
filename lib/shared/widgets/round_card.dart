@@ -1,8 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../core/utils/image_size.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/image_size.dart';
 import '../../core/utils/responsive.dart';
 
 class RoundCard extends StatelessWidget {
@@ -34,31 +35,40 @@ class RoundCard extends StatelessWidget {
         child: Column(
           children: [
             ClipOval(
-              child: CachedNetworkImage(
-                imageUrl: CloudinaryImage.resize(coverImg, width: size * 2),
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
+              child: coverImg.trim().isEmpty
+                  ? SizedBox(
+                      width: size,
+                      height: size,
+                      child: const Icon(Icons.person),
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: CloudinaryImage.resize(
+                        coverImg,
+                        width: size * 2,
+                      ),
+                      width: size,
+                      height: size,
+                      fit: BoxFit.cover,
 
-                // Don't decode a huge image when the card is small.
-                memCacheWidth: (size * 2).toInt(),
-                memCacheHeight: (size * 2).toInt(),
+                      // Don't decode a huge image when the card is small.
+                      memCacheWidth: (size * 2).toInt(),
+                      memCacheHeight: (size * 2).toInt(),
 
-                // Also keep a smaller version in disk cache.
-                maxWidthDiskCache: (size * 2).toInt(),
-                maxHeightDiskCache: (size * 2).toInt(),
+                      // Also keep a smaller version in disk cache.
+                      maxWidthDiskCache: (size * 2).toInt(),
+                      maxHeightDiskCache: (size * 2).toInt(),
 
-                placeholder: (context, url) => SizedBox(
-                  width: size,
-                  height: size,
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-                errorWidget: (context, url, error) => SizedBox(
-                  width: size,
-                  height: size,
-                  child: const Icon(Icons.person),
-                ),
-              ),
+                      placeholder: (context, url) => SizedBox(
+                        width: size,
+                        height: size,
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
+                      errorWidget: (context, url, error) => SizedBox(
+                        width: size,
+                        height: size,
+                        child: const Icon(Icons.person),
+                      ),
+                    ),
             ),
 
             const SizedBox(height: AppSpacing.sm),

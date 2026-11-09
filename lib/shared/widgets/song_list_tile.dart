@@ -12,8 +12,10 @@ class SongListTile extends StatelessWidget {
   // Optional overrides — every screen gets the same look by default,
   // but any screen can opt out of specific pieces.
   final bool showMoreButton;
-  final bool dense; // smaller variant, e.g. for a horizontal "recently played" row
-  final Widget? trailing; // replace the more-button with something else (e.g. a play count, a checkmark for multi-select)
+  final bool
+  dense; // smaller variant, e.g. for a horizontal "recently played" row
+  final Widget?
+  trailing; // replace the more-button with something else (e.g. a play count, a checkmark for multi-select)
 
   const SongListTile({
     super.key,
@@ -40,12 +42,19 @@ class SongListTile extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: CachedNetworkImage(
-                imageUrl: CloudinaryImage.resize(song.media.coverUrl, width: (size * 2)),
-                width: size,
-                height: size,
-                fit: BoxFit.cover,
-              ),
+              child: song.media.coverUrl.isEmpty
+                  ? _fallback(size)
+                  : CachedNetworkImage(
+                      imageUrl: CloudinaryImage.resize(
+                        song.media.coverUrl,
+                        width: (size * 2),
+                      ),
+                      width: size,
+                      height: size,
+                      fit: BoxFit.cover,
+                      placeholder: (_, _) => _fallback(size),
+                      errorWidget: (_, _, _) => _fallback(size),
+                    ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -57,14 +66,20 @@ class SongListTile extends StatelessWidget {
                     song.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: titleSize, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontSize: titleSize,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    song.artists!.map((a) => a.name).join(', '),
+                    song.artistNames,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: subtitleSize, color: Colors.grey.shade500),
+                    style: TextStyle(
+                      fontSize: subtitleSize,
+                      color: Colors.grey.shade500,
+                    ),
                   ),
                 ],
               ),
@@ -78,4 +93,11 @@ class SongListTile extends StatelessWidget {
       ),
     );
   }
+
+  Widget _fallback(double size) => Container(
+    width: size,
+    height: size,
+    color: Colors.grey.withValues(alpha: 0.2),
+    child: const Icon(Icons.music_note_rounded, color: Colors.grey),
+  );
 }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:muzik/core/router/route_names.dart';
+import '../../../../core/error/error_message.dart';
 
 import '../../../../shared/widgets/square_card.dart';
 import '../../data/models/album_model.dart';
@@ -14,7 +17,7 @@ class AlbumsList extends ConsumerWidget {
     final provider = albumListProvider;
 
     return PaginatedAlbumGridView(
-      title: "Albums",
+      title: 'Albums',
       albums: state.albums,
       isLoading: state.isLoading,
       isLoadingMore: state.isLoadingMore,
@@ -99,7 +102,11 @@ class _PaginatedAlbumGridViewState extends State<PaginatedAlbumGridView> {
     }
 
     if (widget.error != null && widget.albums.isEmpty) {
-      return _ErrorState(onRetry: widget.onRefresh, titile: widget.title);
+      return _ErrorState(
+        onRetry: widget.onRefresh,
+        titile: widget.title,
+        message: friendlyError(widget.error),
+      );
     }
 
     if (widget.albums.isEmpty) {
@@ -134,6 +141,10 @@ class _PaginatedAlbumGridViewState extends State<PaginatedAlbumGridView> {
             title: album.title,
             artist: artistNames,
             coverImg: album.coverUrl,
+            onTap: () => context.goNamed(
+              RouteName.album,
+              pathParameters: {'id': album.id.toString()},
+            ),
           );
         },
       ),
@@ -222,8 +233,13 @@ class _AlbumCardSkeleton extends StatelessWidget {
 class _ErrorState extends StatelessWidget {
   final VoidCallback onRetry;
   final String titile;
+  final String message;
 
-  const _ErrorState({required this.onRetry, required this.titile});
+  const _ErrorState({
+    required this.onRetry,
+    required this.titile,
+    required this.message,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -248,7 +264,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              "Check your connection and try again",
+              message,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.outline,
               ),

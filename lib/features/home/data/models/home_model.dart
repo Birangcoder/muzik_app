@@ -1,6 +1,7 @@
+import '../../../../core/utils/json_utils.dart';
 import '../../../../shared/models/album_model_ref.dart';
-import '../../../song/data/models/song_model.dart';
 import '../../../../shared/models/artist_model_ref.dart';
+import '../../../song/data/models/song_model.dart';
 
 class HomeModel {
   final List<SongModel> trending;
@@ -21,37 +22,23 @@ class HomeModel {
     required this.albums,
   });
 
+  /// Every section is optional: a missing / null section becomes an empty
+  /// list instead of crashing the whole home screen.
   factory HomeModel.fromJson(Map<String, dynamic> json) {
     return HomeModel(
-      trending: (json['trending'] as List)
-          .map((e) => SongModel.fromJson(e))
-          .toList(),
-
-      popular: (json['popular'] as List)
-          .map((e) => SongModel.fromJson(e))
-          .toList(),
-
-      recommended: (json['recommended'] as List)
-          .map((e) => SongModel.fromJson(e))
-          .toList(),
-
-      newReleases: (json['new_release'] as List)
-          .map((e) => SongModel.fromJson(e))
-          .toList(),
-
-      artists: (json['top_artists'] as List)
-          .map((e) => ArtistsModelRef.fromJson(e))
-          .toList(),
-
-      albums: (json['top_albums'] as List)
-          .map((e) => AlbumModelRef.fromJson(e))
-          .toList(),
-
-      continueListening: (json['continue_listening'] as List)
-          .map((e) => SongModel.fromJson(e))
-          .toList(),
+      trending: Json.list(json['trending'], SongModel.fromJson),
+      popular: Json.list(json['popular'], SongModel.fromJson),
+      recommended: Json.list(json['recommended'], SongModel.fromJson),
+      newReleases: Json.list(
+        json['new_release'] ?? json['new_releases'],
+        SongModel.fromJson,
+      ),
+      continueListening: Json.list(
+        json['continue_listening'],
+        SongModel.fromJson,
+      ),
+      artists: Json.list(json['top_artists'], ArtistsModelRef.fromJson),
+      albums: Json.list(json['top_albums'], AlbumModelRef.fromJson),
     );
   }
 }
-
-//add popular, recommended, continue listening

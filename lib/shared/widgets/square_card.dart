@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/utils/image_size.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
+import '../../core/utils/image_size.dart';
 import '../../core/utils/responsive.dart';
 
 class SquareCard extends StatelessWidget {
@@ -42,7 +42,7 @@ class SquareCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.chip),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.16),
+              color: Colors.black.withValues(alpha: 0.16),
               blurRadius: 12,
               offset: const Offset(0, 5),
             ),
@@ -50,19 +50,28 @@ class SquareCard extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(AppRadius.chip),
-          child: CachedNetworkImage(
-            imageUrl: CloudinaryImage.resize(coverImg, width: cellWidth * 2),
-            fit: BoxFit.cover,
-            memCacheWidth: (cellWidth * 2).toInt(),
-            memCacheHeight: (cellWidth * 2).toInt(),
-            maxWidthDiskCache: (cellWidth * 2).toInt(),
-            maxHeightDiskCache: (cellWidth * 2).toInt(),
-            placeholder: (context, url) => Container(color: colors.surface),
-            errorWidget: (context, url, error) => Container(
-              color: colors.surface,
-              child: Icon(Icons.music_note, color: colors.text2),
-            ),
-          ),
+          child: coverImg.trim().isEmpty
+              ? Container(
+                  color: colors.surface,
+                  child: Icon(Icons.music_note, color: colors.text2),
+                )
+              : CachedNetworkImage(
+                  imageUrl: CloudinaryImage.resize(
+                    coverImg,
+                    width: cellWidth * 2,
+                  ),
+                  fit: BoxFit.cover,
+                  memCacheWidth: (cellWidth * 2).toInt(),
+                  memCacheHeight: (cellWidth * 2).toInt(),
+                  maxWidthDiskCache: (cellWidth * 2).toInt(),
+                  maxHeightDiskCache: (cellWidth * 2).toInt(),
+                  placeholder: (context, url) =>
+                      Container(color: colors.surface),
+                  errorWidget: (context, url, error) => Container(
+                    color: colors.surface,
+                    child: Icon(Icons.music_note, color: colors.text2),
+                  ),
+                ),
         ),
       ),
     );

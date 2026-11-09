@@ -1,9 +1,11 @@
+import '../../core/utils/json_utils.dart';
+
 class AlbumRef {
   final int id;
   final String title;
   final String slug;
   final String coverUrl;
-  final DateTime releaseDate;
+  final DateTime? releaseDate;
   final String albumType;
   final String label;
 
@@ -19,13 +21,13 @@ class AlbumRef {
 
   factory AlbumRef.fromJson(Map<String, dynamic> json) {
     return AlbumRef(
-      id: json["id"] as int,
-      title: json["title"] as String,
-      slug: json["slug"] as String,
-      coverUrl: json["cover_url"] as String,
-      releaseDate: DateTime.tryParse(json["release_date"] as String)!,
-      albumType: json["album_type"] as String,
-      label: json["label"] as String,
+      id: Json.requiredInt(json['id'], 'album.id'),
+      title: Json.str(json['title']),
+      slug: Json.str(json['slug']),
+      coverUrl: Json.str(json['cover_url']),
+      releaseDate: Json.dateOrNull(json['release_date']),
+      albumType: Json.str(json['album_type']),
+      label: Json.str(json['label']),
     );
   }
 }
@@ -39,9 +41,9 @@ class GenresRef {
 
   factory GenresRef.fromJson(Map<String, dynamic> json) {
     return GenresRef(
-      id: json["id"] as int,
-      title: json["name"] as String,
-      slug: json["slug"] as String,
+      id: Json.requiredInt(json['id'], 'genre.id'),
+      title: Json.str(json['name'] ?? json['title']),
+      slug: Json.str(json['slug']),
     );
   }
 }

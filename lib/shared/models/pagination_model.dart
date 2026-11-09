@@ -1,3 +1,5 @@
+import '../../core/utils/json_utils.dart';
+
 class PaginationModel {
   final int page;
   final int limit;
@@ -17,12 +19,12 @@ class PaginationModel {
 
   factory PaginationModel.fromJson(Map<String, dynamic> json) {
     return PaginationModel(
-      page: json['page'] ?? 1,
-      limit: json['limit'] ?? 20,
-      total: json['total'] ?? 0,
-      totalPages: json['total_pages'] ?? 0,
-      hasNext: json['has_next'] ?? false,
-      hasPrevious: json['has_previous'] ?? false,
+      page: Json.intOf(json['page'], fallback: 1),
+      limit: Json.intOf(json['limit'], fallback: 20),
+      total: Json.intOf(json['total']),
+      totalPages: Json.intOf(json['total_pages']),
+      hasNext: Json.boolOf(json['has_next']),
+      hasPrevious: Json.boolOf(json['has_previous']),
     );
   }
 }

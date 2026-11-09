@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/login_response.dart';
 import '../models/user_model.dart';
@@ -16,27 +17,48 @@ class SecureStorageService {
     );
   }
 
+  /// Returns null (and wipes the bad entry) if storage is unreadable or
+  /// corrupted, instead of throwing into the UI.
   Future<LoginResponse?> readTokens() async {
-    final raw = await _storage.read(key: _tokenKey);
-    if (raw == null) return null;
-    return LoginResponse.fromStorageJson(jsonDecode(raw));
+    try {
+      final raw = await _storage.read(key: _tokenKey);
+      if (raw == null || raw.isEmpty) return null;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) throw const FormatException('bad session');
+      return LoginResponse.fromStorageJson(Map<String, dynamic>.from(decoded));
+    } catch (e) {
+      debugPrint('readTokens failed, clearing: $e');
+      await _safeDelete(_tokenKey);
+      return null;
+    }
   }
 
-  /// The API's login response already includes the full user object, so
-  /// we cache it locally at login time instead of re-fetching it from a
-  /// dedicated "current user" endpoint.
   Future<void> saveUser(UserModel user) async {
     await _storage.write(key: _userKey, value: jsonEncode(user.toJson()));
   }
 
   Future<UserModel?> readUser() async {
-    final raw = await _storage.read(key: _userKey);
-    if (raw == null) return null;
-    return UserModel.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    try {
+      final raw = await _storage.read(key: _userKey);
+      if (raw == null || raw.isEmpty) return null;
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map) throw const FormatException('bad user');
+      return UserModel.fromJson(Map<String, dynamic>.from(decoded));
+    } catch (e) {
+      debugPrint('readUser failed, clearing: $e');
+      await _safeDelete(_userKey);
+      return null;
+    }
   }
 
   Future<void> clearTokens() async {
-    await _storage.delete(key: _tokenKey);
-    await _storage.delete(key: _userKey);
+    await _safeDelete(_tokenKey);
+    await _safeDelete(_userKey);
+  }
+
+  Future<void> _safeDelete(String key) async {
+    try {
+      await _storage.delete(key: key);
+    } catch (_) {}
   }
 }

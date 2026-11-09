@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
+import '../../../../core/error/error_message.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../player/presentation/providers/audio_player_provider.dart';
 import '../providers/song_provider.dart';
@@ -58,7 +59,7 @@ class _LikeAndPlayRowState extends ConsumerState<LikeAndPlayRow> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        ).showSnackBar(SnackBar(content: Text(friendlyError(e))));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -74,7 +75,7 @@ class _LikeAndPlayRowState extends ConsumerState<LikeAndPlayRow> {
     final isLiked = favoritesAsync.when(
       data: (ids) => ids.contains(widget.songId),
       loading: () => false,
-      error: (_, __) => false,
+      error: (_, _) => false,
     );
 
     // Audio state for play button

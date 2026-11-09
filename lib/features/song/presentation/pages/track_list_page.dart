@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/models/track_state.dart';
+import '../providers/track_notifier.dart';
 import '../widgets/paginated_song_list_view.dart';
 
 class TrackListPage extends ConsumerWidget {
-  final provider;
-  final title;
+  final NotifierProvider<TrackNotifier, TrackState> provider;
+  final String title;
 
   const TrackListPage({super.key, required this.provider, required this.title});
 
