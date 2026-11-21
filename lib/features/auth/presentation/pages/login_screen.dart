@@ -110,7 +110,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: Text(
                       'Forgot?',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: const Color(0xff1CB5E0),
+                        color: context.colors.purple,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -152,7 +152,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(30),
                     gradient: const LinearGradient(
-                      colors: [Color(0xff6E40F5), Color(0xff1CB5E0)],
+                      colors: [Color(0xff8B5CF6), Color(0xff6D28D9)],
                     ),
                   ),
                   child: ElevatedButton(
