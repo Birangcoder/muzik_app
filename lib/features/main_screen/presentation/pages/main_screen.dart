@@ -1,84 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:muzik/core/router/route_names.dart';
-import 'package:muzik/core/theme/app_spacing.dart';
-
 import '../../../../core/theme/app_colors.dart';
-// FloatingMiniPlayer now lives at the app root (see main.dart's MaterialApp
-// builder) so it shows on every screen, not just ones nested in this shell.
 
 class MainScreen extends StatelessWidget {
   final Widget child;
   final int index;
-
   const MainScreen({super.key, required this.child, required this.index});
 
-  final dect = const [
-    Text('home'),
-    Text('search'),
-    Text('library'),
-    Text('profile'),
+  static const _routes = ['/', '/search', '/library', '/profile'];
+  static const _labels = ['Home', 'Search', 'Library', 'Profile'];
+  static const _icons = [
+    Icons.home_rounded,
+    Icons.search_rounded,
+    Icons.library_music_rounded,
+    Icons.person_rounded,
   ];
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colors;
     return Scaffold(
-      backgroundColor: context.colors.background,
+      backgroundColor: colors.background,
       body: SafeArea(
-        child: Padding(padding: AppSpacing.screenMargin, child: child),
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 680),
+            child: child,
+          ),
+        ),
       ),
-      bottomNavigationBar: NavigationBar(
-        indicatorColor: context.colors.surface2,
-        surfaceTintColor: Colors.transparent,
-        selectedIndex: index,
-        elevation: 2,
-        onDestinationSelected: (index) {
-          switch (index) {
-            case 0:
-              context.goNamed(RouteName.home);
-              break;
-            case 1:
-              context.pushNamed(RouteName.search);
-              break;
-            case 2:
-              context.pushNamed(RouteName.library);
-              break;
-            case 3:
-              context.pushNamed(RouteName.profile);
-              break;
-          }
-        },
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.home_outlined),
-            label: 'home',
-            selectedIcon: Icon(Icons.home_outlined, color: context.colors.blue),
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.search_outlined),
-            label: 'search',
-            selectedIcon: Icon(
-              Icons.search_outlined,
-              color: context.colors.blue,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          decoration: BoxDecoration(
+            color: colors.surface,
+            border: Border(
+              top: BorderSide(color: colors.stroke.withValues(alpha: .65)),
             ),
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.my_library_music_outlined),
-            label: 'library',
-            selectedIcon: Icon(
-              Icons.my_library_music_outlined,
-              color: context.colors.blue,
+          child: NavigationBar(
+            height: 68,
+            backgroundColor: colors.surface,
+            surfaceTintColor: Colors.transparent,
+            indicatorColor: colors.purple.withValues(alpha: .16),
+            selectedIndex: index.clamp(0, 3),
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            onDestinationSelected: (i) {
+              if (i != index) context.go(_routes[i]);
+            },
+            destinations: List.generate(
+              4,
+              (i) => NavigationDestination(
+                icon: Icon(_icons[i], size: 21),
+                selectedIcon: Icon(_icons[i], color: colors.purple, size: 22),
+                label: _labels[i],
+              ),
             ),
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.person_outline),
-            label: 'profile',
-            selectedIcon: Icon(
-              Icons.person_outline,
-              color: context.colors.blue,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

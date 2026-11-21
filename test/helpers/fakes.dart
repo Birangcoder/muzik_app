@@ -181,7 +181,11 @@ Widget wrap(Widget child, {List<Override> overrides = const []}) {
   return ProviderScope(
     retry: (retryCount, error) => null,
     overrides: overrides,
-    child: MaterialApp(theme: AppTheme.light, home: child),
+    child: MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      home: Scaffold(body: child),
+    ),
   );
 }
 
