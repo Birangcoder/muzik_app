@@ -7,11 +7,13 @@ class MainScreen extends StatelessWidget {
   final int index;
   const MainScreen({super.key, required this.child, required this.index});
 
-  static const _routes = ['/','/search','/library','/profile'];
-  static const _labels = ['Home','Search','Library','Profile'];
+  static const _routes = ['/', '/search', '/library', '/profile'];
+  static const _labels = ['Home', 'Search', 'Library', 'Profile'];
   static const _icons = [
-    Icons.home_rounded, Icons.search_rounded,
-    Icons.library_music_rounded, Icons.person_rounded,
+    Icons.home_rounded,
+    Icons.search_rounded,
+    Icons.library_music_rounded,
+    Icons.person_rounded,
   ];
 
   @override
@@ -33,7 +35,9 @@ class MainScreen extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: colors.surface,
-            border: Border(top: BorderSide(color: colors.stroke.withValues(alpha: .65))),
+            border: Border(
+              top: BorderSide(color: colors.stroke.withValues(alpha: .65)),
+            ),
           ),
           child: NavigationBar(
             height: 68,
@@ -45,11 +49,14 @@ class MainScreen extends StatelessWidget {
             onDestinationSelected: (i) {
               if (i != index) context.go(_routes[i]);
             },
-            destinations: List.generate(4, (i) => NavigationDestination(
-              icon: Icon(_icons[i], size: 21),
-              selectedIcon: Icon(_icons[i], color: colors.purple, size: 22),
-              label: _labels[i],
-            )),
+            destinations: List.generate(
+              4,
+              (i) => NavigationDestination(
+                icon: Icon(_icons[i], size: 21),
+                selectedIcon: Icon(_icons[i], color: colors.purple, size: 22),
+                label: _labels[i],
+              ),
+            ),
           ),
         ),
       ),
